@@ -20,15 +20,12 @@ function init() {
             toLinkable: true,
             toLinkableSelfNode: true,
         }),
-        $(
-            go.Picture,
-            {
-                margin: 10,
-                width: 80,
-                height: 40,
-            },
-            new go.Binding('source', 'source')
-        ),
+        $(go.Picture, {
+            name: 'image',
+            margin: 10,
+            width: 80,
+            height: 40,
+        }),
         {
             toolTip: $(
                 'ToolTip',
@@ -81,5 +78,23 @@ function init() {
             }
         }
     })
+
+    const animatePicture = (node, images) => {
+        const picture = node.findObject('image')
+        const newSrc = picture.source === images[0] ? images[1] : images[0]
+        picture.source = newSrc
+    }
+
+    const animateAllPictures = () => {
+        faces.nodes.each((node) => {
+            animatePicture(
+                node,
+                faces.model.nodeDataArray.find((n) => n.key === node.key).images
+            )
+        })
+    }
+
+    setInterval(animateAllPictures, 1000)
 }
+
 window.addEventListener('DOMContentLoaded', init)

@@ -11,14 +11,16 @@ const onChangeImageUpload = (fileInput) => {
 const createFaceGroups = (files) => {
     const faceGroups = {}
 
-    Array.from(files).forEach((file, index) => {
-        const faceName = file.webkitRelativePath.split('/')[1]
-        if (!faceGroups[faceName]) faceGroups[faceName] = []
-        faceGroups[faceName] = [
-            ...faceGroups[faceName],
-            URL.createObjectURL(fileInput.files[index]),
-        ]
-    })
+    Array.from(files)
+        .filter((file) => /(.png|.jpg)$/i.test(file.webkitRelativePath))
+        .forEach((file) => {
+            const faceName = file.webkitRelativePath.split('/')[1]
+            if (!faceGroups[faceName]) faceGroups[faceName] = []
+            faceGroups[faceName] = [
+                ...faceGroups[faceName],
+                URL.createObjectURL(file),
+            ]
+        })
 
     facesArray = []
     Object.keys(faceGroups).forEach((face) => {
@@ -29,14 +31,12 @@ const createFaceGroups = (files) => {
 }
 
 const displayNodes = () => {
-    const faceNodes = facesArray.map((face, index) => {
-        return {
-            key: index,
-            source: face.images[0],
-            text: `${index} - ${face.name}`,
-            name: face.name,
-        }
-    })
+    const faceNodes = facesArray.map((face, index) => ({
+        key: index,
+        images: face.images,
+        text: `${index} - ${face.name}`,
+        name: face.name,
+    }))
 
     faces.model = new go.GraphLinksModel(faceNodes, [])
 }
@@ -133,7 +133,7 @@ const download = (filename, text) => {
 
 const onClickSave = () => {
     const data = JSON.parse(faces.model.toJson())
-    const nodeDataArray = data.nodeDataArray.map(({ source, ...item }) => item)
+    const nodeDataArray = data.nodeDataArray.map(({ images, ...item }) => item)
     data.nodeDataArray = nodeDataArray
 
     download('facesConfig.json', JSON.stringify(data))
@@ -164,7 +164,7 @@ const onChangeImport = (importInput) => {
         Object.entries(rawData.nodeDataArray).forEach((entry) => {
             const [key, node] = entry
             if (facesArrayObject[node.name]) {
-                node.source = facesArrayObject[node.name][0]
+                node.images = facesArrayObject[node.name]
             } else {
                 delete rawData.nodeDataArray[key]
                 rawData.nodeDataArray.length--
