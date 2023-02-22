@@ -4,13 +4,13 @@ let facesArray
 
 const onChangeImageUpload = (fileInput) => {
     if (fileInput.files.length) {
-        createFaceGroups(fileInput.files)
+        fillFacesArray(fileInput.files)
         displayNodes()
     }
     fileInput.value = ''
 }
 
-const createFaceGroups = (files) => {
+const fillFacesArray = (files) => {
     const faceGroups = {}
 
     Array.from(files)
@@ -18,15 +18,12 @@ const createFaceGroups = (files) => {
         .forEach((file) => {
             const faceName = file.webkitRelativePath.split('/')[1]
             if (!faceGroups[faceName]) faceGroups[faceName] = []
-            faceGroups[faceName] = [
-                ...faceGroups[faceName],
-                URL.createObjectURL(file),
-            ]
+            faceGroups[faceName].push(URL.createObjectURL(file))
         })
 
     facesArray = []
-    Object.keys(faceGroups).forEach((face) => {
-        facesArray.push({ name: face, images: faceGroups[face] })
+    Object.keys(faceGroups).forEach((name) => {
+        facesArray.push({ name, images: faceGroups[name] })
     })
 
     facesArray.sort((a, b) => a.name.localeCompare(b.name))
@@ -43,7 +40,7 @@ const displayNodes = () => {
     diagram.model = new go.GraphLinksModel(faceNodes, [])
 }
 
-const onClickExport = () => {
+const onClickSaveArduino = () => {
     if (!facesArray) {
         window.alert('No faces to export')
         return
@@ -58,25 +55,22 @@ const generateConfigFile = () => {
 
     return `#define NUMBER_FACES ${facesArray.length}
 #define INVALID_FACE -1
-${generateDefines()}
+${generateDefines()}\n
 const int8_t nextFaces[][${maxLinks}] = {
 ${fileMappings}};\n`
 }
 
 const generateDefines = () => {
-    let defines = ''
-    facesArray.forEach((face, index) => {
-        defines += `#define ${face.name.toUpperCase()} ${index}\n`
-    })
-    return defines
+    return facesArray
+        .map((face, index) => `#define ${face.name.toUpperCase()} ${index}`)
+        .join('\n')
 }
 
 const getMaxLinks = (mappings) => {
-    let max = 0
-    Object.keys(mappings).forEach((mapping) => {
-        max = Math.max(max, mappings[mapping].length)
-    })
-    return max
+    return Object.values(mappings).reduce(
+        (acc, cur) => Math.max(acc, cur.length),
+        0
+    )
 }
 
 const addMapping = (map, key, mapping) => {
@@ -103,17 +97,21 @@ const generateMappings = () => {
 }
 
 const generateFileMappings = (mappings, max) => {
-    Object.keys(mappings).forEach((mapping) => {
-        while (mappings[mapping].length < max) {
-            mappings[mapping].push('INVALID_FACE')
-        }
+    const fullMappings = {}
+
+    Object.keys(mappings).forEach((key) => {
+        fullMappings[key] = mappings[key].concat(
+            Array(max - mappings[key].length).fill('INVALID_FACE')
+        )
     })
 
     let fileMappings = ''
 
     facesArray.forEach((face, index) => {
-        if (!mappings[index]) mappings[index] = Array(max).fill('INVALID_FACE')
-        fileMappings += `  {${mappings[index].join(', ')}}`
+        if (!fullMappings[index]) {
+            fullMappings[index] = Array(max).fill('INVALID_FACE')
+        }
+        fileMappings += `  {${fullMappings[index].join(', ')}}`
         if (index !== facesArray.length - 1) fileMappings += ','
         fileMappings += ` //${face.name.toUpperCase()}\n`
     })
@@ -136,7 +134,7 @@ const download = (filename, text) => {
     URL.revokeObjectURL(url)
 }
 
-const onClickSave = () => {
+const onClickSaveConfiguration = () => {
     const data = JSON.parse(diagram.model.toJson())
     const nodeDataArray = data.nodeDataArray.map(({ images, ...item }) => item)
     data.nodeDataArray = nodeDataArray

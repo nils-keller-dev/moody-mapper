@@ -12,42 +12,44 @@
         <script src="js/diagram.js"></script>
     </head>
     <body>
-        <div style="display: flex; gap: 10px">
-            <input
-                id="fileInput"
-                style="display: none"
-                type="file"
-                onchange="onChangeImageUpload(this)"
-                webkitdirectory
-                directory
-                multiple
-            />
+        <input
+            id="fileInput"
+            type="file"
+            onchange="onChangeImageUpload(this)"
+            webkitdirectory
+            directory
+            multiple
+        />
+        <input
+            id="import"
+            type="file"
+            onchange="onChangeImport(this)"
+            accept="application/json"
+        />
+
+        <div class="buttonWrapper">
             <button
-                onclick="document.getElementById('fileInput').click();"
+                onclick="document.getElementById('fileInput').click()"
                 title="Upload images"
             >
                 <span class="fa fa-images" />
             </button>
             <button
-                onclick="document.getElementById('import').click();"
+                onclick="document.getElementById('import').click()"
                 title="Import configuration file"
             >
                 <span class="fa fa-file-lines" />
             </button>
             <div class="verticalLine"></div>
-            <button onclick="onClickExport()" title="Save for arduino">
+            <button onclick="onClickSaveArduino()" title="Save for arduino">
                 <span class="fa fa-infinity" />
             </button>
-            <button onclick="onClickSave()" title="Save configuration file">
+            <button
+                onclick="onClickSaveConfiguration()"
+                title="Save configuration file"
+            >
                 <span class="fa fa-save" />
             </button>
-            <input
-                id="import"
-                style="display: none"
-                type="file"
-                onchange="onChangeImport(this)"
-                accept="application/json"
-            />
         </div>
         <div id="diagramDiv" />
     </body>
