@@ -4,7 +4,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <link
             rel="stylesheet"
-            href="https://cdn.jsdelivr.net/themify-icons/0.1.2/css/themify-icons.css"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css"
         />
         <link rel="stylesheet" href="css/styles.css" />
         <script src="https://unpkg.com/gojs"></script>
@@ -26,13 +26,20 @@
                 onclick="document.getElementById('fileInput').click();"
                 title="Upload images"
             >
-                <span class="ti-gallery" />
+                <span class="fa fa-images" />
             </button>
+            <button
+                onclick="document.getElementById('import').click();"
+                title="Import configuration file"
+            >
+                <span class="fa fa-file-lines" />
+            </button>
+            <div class="verticalLine"></div>
             <button onclick="onClickExport()" title="Save for arduino">
-                <span class="ti-jsfiddle" />
+                <span class="fa fa-infinity" />
             </button>
             <button onclick="onClickSave()" title="Save configuration file">
-                <span class="ti-save" />
+                <span class="fa fa-save" />
             </button>
             <input
                 id="import"
@@ -41,12 +48,6 @@
                 onchange="onChangeImport(this)"
                 accept="application/json"
             />
-            <button
-                onclick="document.getElementById('import').click();"
-                title="Import configuration file"
-            >
-                <span class="ti-receipt" />
-            </button>
         </div>
         <div id="diagramDiv" />
     </body>
