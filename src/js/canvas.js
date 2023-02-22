@@ -1,15 +1,15 @@
-let faces
+let diagram
 
 const init = () => {
     const $ = go.GraphObject.make
 
-    faces = $(go.Diagram, 'facesDiv', {
+    diagram = $(go.Diagram, 'diagramDiv', {
         'undoManager.isEnabled': true,
     })
 
-    faces.toolManager.draggingTool.isGridSnapEnabled = true
+    diagram.toolManager.draggingTool.isGridSnapEnabled = true
 
-    faces.nodeTemplate = $(
+    diagram.nodeTemplate = $(
         go.Node,
         'Auto',
         $(go.Shape, 'RoundedRectangle', {
@@ -52,7 +52,11 @@ const init = () => {
         }
     )
 
-    faces.linkTemplate = $(
+    const setStrokeTransparent = (_e, link) => {
+        link.elt(0).stroke = 'transparent'
+    }
+
+    diagram.linkTemplate = $(
         go.Link,
         {
             toShortLength: 3,
@@ -72,28 +76,28 @@ const init = () => {
             new go.Binding('visible', 'isBiDirectional')
         ),
         {
-            mouseEnter: function (e, link) {
+            mouseEnter: (_e, link) => {
                 if (link.isSelected) return
                 link.elt(0).stroke = 'rgba(0,90,156,0.5)'
             },
-            mouseLeave: function (e, link) {
-                link.elt(0).stroke = 'transparent'
-            },
-            click: function (e, link) {
-                link.elt(0).stroke = 'transparent'
-            },
+            mouseLeave: setStrokeTransparent,
+            click: setStrokeTransparent,
         }
     )
 
-    faces.addDiagramListener('LinkDrawn', (e) => {
-        faces.model.setDataProperty(e.subject.data, 'isBiDirectional', false)
+    diagram.addDiagramListener('LinkDrawn', (e) => {
+        diagram.model.setDataProperty(e.subject.data, 'isBiDirectional', false)
 
         const iterator = e.subject.toNode.findLinksOutOf()
         while (iterator.next()) {
             const item = iterator.value
             if (item.data.to === e.subject.data.from) {
-                faces.remove(e.subject)
-                faces.model.setDataProperty(item.data, 'isBiDirectional', true)
+                diagram.remove(e.subject)
+                diagram.model.setDataProperty(
+                    item.data,
+                    'isBiDirectional',
+                    true
+                )
             }
         }
     })
@@ -105,8 +109,8 @@ const init = () => {
     }
 
     const animateAllPictures = () => {
-        faces.nodes.each((node) => {
-            const data = faces.model.nodeDataArray.find(
+        diagram.nodes.each((node) => {
+            const data = diagram.model.nodeDataArray.find(
                 (n) => n.key === node.key
             )
             if (data) {

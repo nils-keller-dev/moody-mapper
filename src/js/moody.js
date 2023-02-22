@@ -40,11 +40,14 @@ const displayNodes = () => {
         name: face.name,
     }))
 
-    faces.model = new go.GraphLinksModel(faceNodes, [])
+    diagram.model = new go.GraphLinksModel(faceNodes, [])
 }
 
 const onClickExport = () => {
-    if (!facesArray) return
+    if (!facesArray) {
+        window.alert('No faces to export')
+        return
+    }
     download('facesConfig.h', generateConfigFile())
 }
 
@@ -84,7 +87,7 @@ const addMapping = (map, key, mapping) => {
 const generateMappings = () => {
     const mappings = {}
 
-    faces.nodes.each((node) => {
+    diagram.nodes.each((node) => {
         const iterator = node.findLinksOutOf()
         while (iterator.next()) {
             const item = iterator.value
@@ -134,7 +137,7 @@ const download = (filename, text) => {
 }
 
 const onClickSave = () => {
-    const data = JSON.parse(faces.model.toJson())
+    const data = JSON.parse(diagram.model.toJson())
     const nodeDataArray = data.nodeDataArray.map(({ images, ...item }) => item)
     data.nodeDataArray = nodeDataArray
 
@@ -173,7 +176,7 @@ const onChangeImport = (importInput) => {
             }
         })
 
-        faces.model = go.Model.fromJson(JSON.stringify(rawData))
+        diagram.model = go.Model.fromJson(JSON.stringify(rawData))
         importInput.value = ''
     }
 
