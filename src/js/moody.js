@@ -121,19 +121,19 @@ const generateFileMappings = (mappings, max) => {
 }
 
 const download = (filename, text) => {
-    const element = document.createElement('a')
-    element.setAttribute(
-        'href',
-        `data:text/plain;charset=utf-8,${encodeURIComponent(text)}`
-    )
-    element.setAttribute('download', filename)
+    const blob = new Blob([text], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
 
-    element.style.display = 'none'
-    document.body.appendChild(element)
+    const a = document.createElement('a')
+    a.setAttribute('href', url)
+    a.setAttribute('download', filename)
+    a.style.display = 'none'
+    document.body.appendChild(a)
 
-    element.click()
+    a.click()
 
-    document.body.removeChild(element)
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
 }
 
 const onClickSave = () => {
@@ -145,18 +145,13 @@ const onClickSave = () => {
 }
 
 const onChangeImport = (importInput) => {
-    if (!facesArray) {
+    if (!facesArray?.length) {
         window.alert('Please upload images first')
         importInput.value = ''
         return false
     }
 
     const files = importInput.files
-    if (files.length <= 0) {
-        importInput.value = ''
-        return false
-    }
-
     const fr = new FileReader()
 
     fr.onload = (e) => {
