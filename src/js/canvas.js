@@ -58,7 +58,7 @@ function init() {
         ),
         {
             mouseEnter: function (e, link) {
-                link.elt(0).stroke = 'rgba(0,90,156,0.3)'
+                link.elt(0).stroke = 'rgba(0,90,156,0.5)'
             },
             mouseLeave: function (e, link) {
                 link.elt(0).stroke = 'transparent'
@@ -87,10 +87,12 @@ function init() {
 
     const animateAllPictures = () => {
         faces.nodes.each((node) => {
-            animatePicture(
-                node,
-                faces.model.nodeDataArray.find((n) => n.key === node.key).images
+            const data = faces.model.nodeDataArray.find(
+                (n) => n.key === node.key
             )
+            if (data) {
+                animatePicture(node, data.images)
+            }
         })
     }
 

@@ -1,3 +1,5 @@
+const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp']
+
 let facesArray
 
 const onChangeImageUpload = (fileInput) => {
@@ -12,7 +14,7 @@ const createFaceGroups = (files) => {
     const faceGroups = {}
 
     Array.from(files)
-        .filter((file) => /(.png|.jpg)$/i.test(file.webkitRelativePath))
+        .filter((file) => SUPPORTED_IMAGE_TYPES.includes(file.type))
         .forEach((file) => {
             const faceName = file.webkitRelativePath.split('/')[1]
             if (!faceGroups[faceName]) faceGroups[faceName] = []
