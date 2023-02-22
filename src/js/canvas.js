@@ -1,5 +1,6 @@
 let faces
-function init() {
+
+const init = () => {
     const $ = go.GraphObject.make
 
     faces = $(go.Diagram, 'facesDiv', {
@@ -12,7 +13,8 @@ function init() {
         go.Node,
         'Auto',
         $(go.Shape, 'RoundedRectangle', {
-            fill: 'white',
+            strokeWidth: 0,
+            fill: '#f3f3e3',
             portId: '',
             cursor: 'pointer',
             fromLinkable: true,
@@ -21,8 +23,9 @@ function init() {
             toLinkableSelfNode: true,
         }),
         $(go.Picture, {
+            cursor: 'pointer',
             name: 'image',
-            margin: 10,
+            margin: 8,
             width: 80,
             height: 40,
         }),
@@ -34,7 +37,19 @@ function init() {
         },
         new go.Binding('location', 'loc', go.Point.parse).makeTwoWay(
             go.Point.stringify
-        )
+        ),
+        {
+            selectionAdornmentTemplate: $(
+                go.Adornment,
+                'Auto',
+                $(go.Shape, 'RoundedRectangle', {
+                    fill: null,
+                    stroke: 'dodgerblue',
+                    strokeWidth: 4,
+                }),
+                $(go.Placeholder)
+            ),
+        }
     )
 
     faces.linkTemplate = $(
@@ -58,9 +73,13 @@ function init() {
         ),
         {
             mouseEnter: function (e, link) {
+                if (link.isSelected) return
                 link.elt(0).stroke = 'rgba(0,90,156,0.5)'
             },
             mouseLeave: function (e, link) {
+                link.elt(0).stroke = 'transparent'
+            },
+            click: function (e, link) {
                 link.elt(0).stroke = 'transparent'
             },
         }
