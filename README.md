@@ -16,7 +16,7 @@ Now you will see all the possible faces but they are still pretty unordered.
 To see the default configuration of the project, you now have to import the [`facesConfig.json`](https://github.com/tsomic/moody-mapper/blob/main/facesConfig.json) file using the second button from the left. The file is located in the root of this project.
 
 What you will see now is the complete default mapping of facial expressions:
-<img src="https://raw.githubusercontent.com/tsomic/moody/main/assets/mapping.gif"/>
+![mapping.gif](https://raw.githubusercontent.com/tsomic/moody/main/assets/mapping.gif)
 
 From here you can move the faces around, create, delete or move the connections and save the configuration if you're satisfied.  
 The third button from the left downloads the `facesConfig.h` file that you can then move to the Arduino folder and the rightmost button saves the configuration as `json` so you can import it again next time.
