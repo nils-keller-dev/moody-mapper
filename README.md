@@ -8,7 +8,7 @@ Moody-Mapper is the mapping component of the [`Moody`](https://github.com/tsomic
 
 You should not clone this repository on its own but as part of the [`main repository`](https://github.com/tsomic/moody) (go there for details).
 
-To use this tool, open the [`index.html`](https://github.com/tsomic/moody-mapper/blob/main/src/index.html) in any browser.
+<!-- To use this tool, open the [`index.html`](https://github.com/tsomic/moody-mapper/blob/main/src/index.html) in any browser. -->
 
 To get started I recommend firstly importing all the images of the [`moody-images`](https://github.com/tsomic/moody-images) repository via the first button on the left. Only `JPEG`, `PNG` and `BMP` files are supported.
 
