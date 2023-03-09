@@ -1,4 +1,4 @@
-export const download = (filename, text) => {
+export const download = (filename: string, text: string) => {
   const blob = new Blob([text], { type: "text/plain" });
   const url = URL.createObjectURL(blob);
 

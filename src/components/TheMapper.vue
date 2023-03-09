@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import { useMapping } from "@/composables/mapping";
+import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
 import { download } from "@/utils/download";
@@ -86,15 +87,15 @@ const onChangeImport = () => {
   fr.onload = (e) => {
     const rawData = JSON.parse(e.target?.result as string);
     const facesArrayObject = facesStore.faces.reduce(
-      (previous: any, current: any) => {
+      (previous: Record<string, string[]>, current) => {
         previous[current.name] = current.images;
         return previous;
       },
       {}
-    );
+    ) as Record<string, string[]>;
 
-    Object.entries(rawData.nodeDataArray).forEach((entry: any) => {
-      const [key, node] = entry;
+    Object.entries(rawData.nodeDataArray).forEach((entry) => {
+      const [key, node] = entry as [string, NodeData];
       if (facesArrayObject[node.name]) {
         node.images = facesArrayObject[node.name];
       } else {
@@ -114,7 +115,7 @@ const onChangeImport = () => {
 };
 
 const displayNodes = () => {
-  const faceNodes = facesStore.faces.map((face: any, index) => ({
+  const faceNodes = facesStore.faces.map((face, index) => ({
     key: index,
     images: face.images,
     text: `${index} - ${face.name}`,
@@ -133,8 +134,12 @@ const onClickSaveArduino = () => {
 };
 
 const onClickSaveConfiguration = () => {
-  const data = JSON.parse((model.value as any).toJson());
-  const nodeDataArray = data.nodeDataArray.map(({ images, ...item }) => item);
+  const data = JSON.parse((model.value as go.Model).toJson());
+  const nodeDataArray = data.nodeDataArray.map((node: NodeData) => ({
+    ...node,
+    images: undefined,
+  }));
+
   data.nodeDataArray = nodeDataArray;
 
   download("facesConfig.json", JSON.stringify(data));

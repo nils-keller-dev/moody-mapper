@@ -24,9 +24,9 @@ ${fileMappings}};\n`;
       .join("\n");
   };
 
-  const getMaxLinks = (mappings) => {
+  const getMaxLinks = (mappings: Record<string, string[]>) => {
     return Object.values(mappings).reduce(
-      (acc: any, cur: any) => Math.max(acc, cur.length),
+      (acc, cur) => Math.max(acc, cur.length),
       0
     );
   };
@@ -34,7 +34,7 @@ ${fileMappings}};\n`;
   const generateMappings = () => {
     const mappings = {};
 
-    nodes.value.each((node) => {
+    nodes.value?.each((node) => {
       const iterator = node.findLinksOutOf();
       while (iterator.next()) {
         const item = iterator.value;
@@ -49,13 +49,23 @@ ${fileMappings}};\n`;
     return mappings;
   };
 
-  const addMapping = (map, key, mapping) => {
+  const addMapping = (
+    map: Record<string, string[]>,
+    key: number,
+    mapping: {
+      name: string;
+      images: string[];
+    }
+  ) => {
     if (!map[key]) map[key] = [];
     map[key].push(mapping.name.toUpperCase());
   };
 
-  const generateFileMappings = (mappings, max) => {
-    const fullMappings = {};
+  const generateFileMappings = (
+    mappings: Record<string, string[]>,
+    max: number
+  ) => {
+    const fullMappings: Record<string, string[]> = {};
 
     Object.keys(mappings).forEach((key) => {
       fullMappings[key] = mappings[key].concat(
@@ -73,6 +83,7 @@ ${fileMappings}};\n`;
       if (index !== faces.value.length - 1) fileMappings += ",";
       fileMappings += ` //${face.name.toUpperCase()}\n`;
     });
+
     return fileMappings;
   };
 

@@ -6,21 +6,21 @@
 import { useDiagramStore } from "@/stores/diagram";
 import go from "gojs";
 import { storeToRefs } from "pinia";
-import { onMounted, watch } from "vue";
+import { onMounted, watch, type Ref } from "vue";
 
 const { model, nodes } = storeToRefs(useDiagramStore());
 
-watch(model, (newModel) => {
+watch(model as Ref<go.Model>, (newModel: go.Model) => {
   diagram.model = newModel;
   nodes.value = diagram.nodes;
 });
 
-let diagram: any;
+let diagram: go.Diagram;
 
 const initDiagram = () => {
   const $ = go.GraphObject.make;
 
-  diagram = $(go.Diagram, "diagramDiv", {
+  diagram = new go.Diagram("diagramDiv", {
     "undoManager.isEnabled": true,
   });
 
@@ -66,8 +66,8 @@ const initDiagram = () => {
     }
   );
 
-  const setStrokeTransparent = (_e, link) => {
-    link.elt(0).stroke = "transparent";
+  const setStrokeTransparent = (_e: go.InputEvent, link: go.GraphObject) => {
+    ((link as go.Link).elt(0) as go.Shape).stroke = "transparent";
   };
 
   diagram.linkTemplate = $(
@@ -90,9 +90,9 @@ const initDiagram = () => {
       new go.Binding("visible", "isBiDirectional")
     ),
     {
-      mouseEnter: (_e, link) => {
-        if (link.isSelected) return;
-        link.elt(0).stroke = "rgba(0,90,156,0.5)";
+      mouseEnter: (_e, link: go.GraphObject) => {
+        if ((link as go.Link).isSelected) return;
+        ((link as go.Link).elt(0) as go.Shape).stroke = "rgba(0,90,156,0.5)";
       },
       mouseLeave: setStrokeTransparent,
       click: setStrokeTransparent,
@@ -112,14 +112,14 @@ const initDiagram = () => {
     }
   });
 
-  const animatePicture = (node, images) => {
-    const picture = node.findObject("image");
+  const animatePicture = (node: go.Node, images: string[]) => {
+    const picture = node.findObject("image") as go.Picture;
     const newSrc = picture.source === images[0] ? images[1] : images[0];
     picture.source = newSrc;
   };
 
   const animateAllPictures = () => {
-    diagram.nodes.each((node: any) => {
+    diagram.nodes.each((node: go.Node) => {
       const data = diagram.model.nodeDataArray.find((n) => n.key === node.key);
       if (data) {
         animatePicture(node, data.images);
