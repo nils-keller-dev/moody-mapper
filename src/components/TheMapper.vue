@@ -1,41 +1,13 @@
 <template>
   <div class="main">
-    <input
-      ref="fileInput"
-      type="file"
-      @change="onChangeImageUpload"
-      webkitdirectory
-      directory
-      multiple
-    />
-    <input
-      ref="importInput"
-      type="file"
-      @change="onChangeImport"
-      accept="application/json"
-    />
     <div class="buttonWrapper">
       <BaseButton
-        tooltip="tooltip"
-        icon="fa-images"
-        @click="fileInput?.click()"
-      />
-      <BaseButton
-        tooltip="tooltip"
+        tooltip="Import"
         icon="fa-file-lines"
-        @click="importInput?.click()"
+        @click="onClickImport"
       />
       <div class="verticalLine"></div>
-      <BaseButton
-        tooltip="tooltip"
-        icon="fa-infinity"
-        @click="onClickSaveArduino"
-      />
-      <BaseButton
-        tooltip="tooltip"
-        icon="fa-save"
-        @click="onClickSaveConfiguration"
-      />
+      <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
     </div>
     <GoDiagram />
   </div>
@@ -46,42 +18,42 @@ import { useMapping } from "@/composables/mapping";
 import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
-import { download } from "@/utils/download";
+import { useFilesStore } from "@/stores/files";
 import go from "gojs";
 import { storeToRefs } from "pinia";
-import { ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 import GoDiagram from "./GoDiagram.vue";
 
-const fileInput = ref<HTMLInputElement | null>(null);
-const importInput = ref<HTMLInputElement | null>(null);
-
 const facesStore = useFacesStore();
 const { model } = storeToRefs(useDiagramStore());
-const { generateConfigFile } = useMapping();
+const { generateConfigFile: generateArduinoConfig } = useMapping();
+const filesStore = useFilesStore();
 
-const onChangeImageUpload = () => {
-  if (fileInput.value) {
-    if (fileInput.value.files?.length) {
-      facesStore.fillFaces(fileInput.value.files);
-      displayNodes();
-    }
-    fileInput.value.value = "";
+const onClickImport = async () => {
+  let dirHandle;
+  try {
+    dirHandle = await (window as any).showDirectoryPicker();
+  } catch {
+    console.log("Please select a directory");
+    return;
   }
+
+  await filesStore.fillStore(dirHandle);
+  await facesStore.fillFaces(filesStore.faces);
+  displayNodes();
+  await importConfig();
 };
 
-const onChangeImport = () => {
-  if (!importInput.value) {
+const importConfig = async () => {
+  if (!filesStore.configuration) {
     return false;
   }
 
   if (!facesStore.faces.length) {
-    window.alert("Please upload images first");
-    importInput.value.value = "";
+    window.alert("There are no faces to import");
     return false;
   }
 
-  const files = importInput.value.files;
   const fr = new FileReader();
 
   fr.onload = (e) => {
@@ -105,13 +77,9 @@ const onChangeImport = () => {
     });
 
     model.value = go.Model.fromJson(JSON.stringify(rawData));
-
-    if (importInput.value) {
-      importInput.value.value = "";
-    }
   };
 
-  fr.readAsText(files?.item(0) as Blob);
+  fr.readAsText(await filesStore.configuration.getFile());
 };
 
 const displayNodes = () => {
@@ -125,15 +93,17 @@ const displayNodes = () => {
   model.value = new go.GraphLinksModel(faceNodes, []);
 };
 
-const onClickSaveArduino = () => {
-  if (!facesStore.faces) {
-    window.alert("No faces to export");
+const onClickSave = async () => {
+  if (!filesStore.arduinoFile || !filesStore.configuration) {
+    window.alert("Please select a directory");
     return;
   }
-  download("facesConfig.h", generateConfigFile());
+
+  writeFile(filesStore.arduinoFile, generateArduinoConfig());
+  writeFile(filesStore.configuration, generateConfiguration());
 };
 
-const onClickSaveConfiguration = () => {
+const generateConfiguration = () => {
   const data = JSON.parse((model.value as go.Model).toJson());
   const nodeDataArray = data.nodeDataArray.map((node: NodeData) => ({
     ...node,
@@ -142,7 +112,18 @@ const onClickSaveConfiguration = () => {
 
   data.nodeDataArray = nodeDataArray;
 
-  download("facesConfig.json", JSON.stringify(data));
+  return JSON.stringify(data, null, 2);
+};
+
+const writeFile = async (
+  // eslint-disable-next-line no-undef
+  fileHandle: FileSystemFileHandle,
+  contents: string
+) => {
+  //@ts-ignore
+  const writable = await fileHandle.createWritable();
+  await writable.write(contents);
+  await writable.close();
 };
 </script>
 

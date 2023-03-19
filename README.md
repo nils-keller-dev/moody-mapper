@@ -10,16 +10,14 @@ You should not clone this repository on its own but as part of the [`main reposi
 
 <!-- To use this tool, open the [`index.html`](https://github.com/tsomic/moody-mapper/blob/main/src/index.html) in any browser. -->
 
-To get started I recommend firstly importing all the images of the [`moody-images`](https://github.com/tsomic/moody-images) repository via the first button on the left. Only `JPEG`, `PNG` and `BMP` files are supported.
-
-Now you will see all the possible faces but they are still pretty unordered.  
-To see the default configuration of the project, you now have to import the [`facesConfig.json`](https://github.com/tsomic/moody-mapper/blob/main/facesConfig.json) file using the second button from the left. The file is located in the root of this project.
+To get started you firstly need to import all the necessary files. To do this, click the first button and select the main `moody` folder.  
+This will import all the images from the [`moody-images`](https://github.com/tsomic/moody-images) repository and also the [config file](https://github.com/tsomic/moody-mapper/blob/main/facesConfig.json) that is located in this repository.
 
 What you will see now is the complete default mapping of facial expressions:
 ![mapping.gif](https://raw.githubusercontent.com/tsomic/moody/main/assets/mapping.gif)
 
-From here you can move the faces around, create, delete or move the connections and save the configuration if you're satisfied.  
-The third button from the left downloads the `facesConfig.h` file that you can then move to the Arduino folder and the rightmost button saves the configuration as `json` so you can import it again next time.
+From here you can move the faces around, create, delete or move the connections.  
+Once you are satisfied with the mapping you can save your changes, which writes to the mapping configuration files for both the [mapper](https://github.com/tsomic/moody-mapper/blob/main/facesConfig.json) and the [arduino](https://github.com/tsomic/moody-arduino/blob/main/moody/facesConfig.h). To apply the changes to the Arduino, you of course need to flash the data once again.
 
 Be aware that it is currently not very user friendly to just add a new facial expression to the project. You basically have to either manually edit the `facesConfig.json` or recreate the whole mapping.
 
