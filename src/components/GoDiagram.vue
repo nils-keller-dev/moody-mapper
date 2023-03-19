@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import { useDiagramStore } from "@/stores/diagram";
-import go from "gojs";
+import go, { Size } from "gojs";
 import { storeToRefs } from "pinia";
 import { onMounted, watch, type Ref } from "vue";
 
@@ -25,6 +25,7 @@ const initDiagram = () => {
   });
 
   diagram.toolManager.draggingTool.isGridSnapEnabled = true;
+  diagram.toolManager.draggingTool.gridSnapCellSize = new Size(160, 130);
 
   diagram.nodeTemplate = $(
     go.Node,

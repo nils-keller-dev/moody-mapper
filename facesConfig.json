@@ -5,103 +5,103 @@
       "key": 0,
       "text": "0 - ahegao",
       "name": "ahegao",
-      "loc": "820 1060"
+      "loc": "160 260"
     },
     {
       "key": 1,
       "text": "1 - cold",
       "name": "cold",
-      "loc": "620 1190"
+      "loc": "0 390"
     },
     {
       "key": 2,
       "text": "2 - confused",
       "name": "confused",
-      "loc": "1340 1060"
+      "loc": "640 260"
     },
     {
       "key": 3,
       "text": "3 - dead",
       "name": "dead",
-      "loc": "1180 1320"
+      "loc": "480 520"
     },
     {
       "key": 4,
       "text": "4 - frown",
       "name": "frown",
-      "loc": "1180 1190"
+      "loc": "480 390"
     },
     {
       "key": 5,
       "text": "5 - glad",
       "name": "glad",
-      "loc": "1580 930"
+      "loc": "800 130"
     },
     {
       "key": 6,
       "text": "6 - grin",
       "name": "grin",
-      "loc": "1180 930"
+      "loc": "480 130"
     },
     {
       "key": 7,
       "text": "7 - happy",
       "name": "happy",
-      "loc": "1180 800"
+      "loc": "480 0"
     },
     {
       "key": 8,
       "text": "8 - hot",
       "name": "hot",
-      "loc": "620 930"
+      "loc": "0 130"
     },
     {
       "key": 9,
       "text": "9 - owo",
       "name": "owo",
-      "loc": "1500 1060"
+      "loc": "800 260"
     },
     {
       "key": 10,
       "text": "10 - polite",
       "name": "polite",
-      "loc": "1020 1060"
+      "loc": "320 260"
     },
     {
       "key": 11,
       "text": "11 - shock",
       "name": "shock",
-      "loc": "620 1320"
+      "loc": "0 520"
     },
     {
       "key": 12,
       "text": "12 - skull",
       "name": "skull",
-      "loc": "1180 1450"
+      "loc": "480 650"
     },
     {
       "key": 13,
       "text": "13 - speechless",
       "name": "speechless",
-      "loc": "1180 1060"
+      "loc": "480 260"
     },
     {
       "key": 14,
       "text": "14 - surprised",
       "name": "surprised",
-      "loc": "990 930"
+      "loc": "320 130"
     },
     {
       "key": 15,
       "text": "15 - unsure",
       "name": "unsure",
-      "loc": "1020 1190"
+      "loc": "320 390"
     },
     {
       "key": 16,
       "text": "16 - uwu",
       "name": "uwu",
-      "loc": "1660 1060"
+      "loc": "960 260"
     }
   ],
   "linkDataArray": [
