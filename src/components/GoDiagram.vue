@@ -20,9 +20,7 @@ let diagram: go.Diagram;
 const initDiagram = () => {
   const $ = go.GraphObject.make;
 
-  diagram = new go.Diagram("diagramDiv", {
-    "undoManager.isEnabled": true,
-  });
+  diagram = new go.Diagram("diagramDiv");
 
   diagram.toolManager.draggingTool.isGridSnapEnabled = true;
   diagram.toolManager.draggingTool.gridSnapCellSize = new Size(160, 130);
@@ -116,6 +114,7 @@ const initDiagram = () => {
   const animatePicture = (node: go.Node, images: string[]) => {
     const picture = node.findObject("image") as go.Picture;
     const newSrc = picture.source === images[0] ? images[1] : images[0];
+
     picture.source = newSrc;
   };
 
