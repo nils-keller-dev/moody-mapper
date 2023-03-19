@@ -19,7 +19,7 @@ What you will see now is the complete default mapping of facial expressions:
 From here you can move the faces around, create, delete or move the connections.  
 Once you are satisfied with the mapping you can save your changes, which writes to the mapping configuration files for both the [mapper](https://github.com/tsomic/moody-mapper/blob/main/facesConfig.json) and the [arduino](https://github.com/tsomic/moody-arduino/blob/main/moody/facesConfig.h). To apply the changes to the Arduino, you of course need to flash the data once again.
 
-Be aware that it is currently not very user friendly to just add a new facial expression to the project. You basically have to either manually edit the `facesConfig.json` or recreate the whole mapping.
+To add new faces, just follow the guidelines of the [`moody-images`](https://github.com/tsomic/moody-images) project. The new face will appear in the mapper after another import (don't forget to save before reimporting!).
 
 <br/>
 
