@@ -3,4 +3,5 @@ export interface NodeData {
   images: string[];
   text: string;
   name: string;
+  loc: string;
 }

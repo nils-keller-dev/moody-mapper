@@ -15,6 +15,7 @@
 
 <script setup lang="ts">
 import { useMapping } from "@/composables/mapping";
+import type { LinkData } from "@/constants/interfaces/LinkData";
 import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
@@ -49,34 +50,41 @@ const importConfig = async () => {
     return false;
   }
 
-  if (!facesStore.faces.length) {
-    window.alert("There are no faces to import");
-    return false;
-  }
-
   const fr = new FileReader();
 
   fr.onload = (e) => {
-    const rawData = JSON.parse(e.target?.result as string);
-    const facesArrayObject = facesStore.faces.reduce(
-      (previous: Record<string, string[]>, current) => {
-        previous[current.name] = current.images;
-        return previous;
-      },
-      {}
-    ) as Record<string, string[]>;
+    const configData = JSON.parse(e.target?.result as string);
+    const modelData = JSON.parse(model.value?.toJson() || "{}");
 
-    Object.entries(rawData.nodeDataArray).forEach((entry) => {
-      const [key, node] = entry as [string, NodeData];
-      if (facesArrayObject[node.name]) {
-        node.images = facesArrayObject[node.name];
-      } else {
-        delete rawData.nodeDataArray[key];
-        rawData.nodeDataArray.length--;
+    modelData.linkDataArray = JSON.parse(
+      JSON.stringify(configData.linkDataArray)
+    );
+
+    modelData.nodeDataArray.forEach((node: NodeData) => {
+      const nodeFromConfig = configData.nodeDataArray.find(
+        (n: NodeData) => node.name === n.name
+      ) as NodeData;
+
+      if (nodeFromConfig) {
+        node.loc = nodeFromConfig.loc;
+
+        if (nodeFromConfig.key !== node.key) {
+          modelData.linkDataArray.forEach((link: LinkData, index: number) => {
+            const linkFromConfig = configData.linkDataArray[index];
+
+            if (linkFromConfig.from === nodeFromConfig.key) {
+              link.from = node.key;
+            }
+
+            if (linkFromConfig.to === nodeFromConfig.key) {
+              link.to = node.key;
+            }
+          });
+        }
       }
     });
 
-    model.value = go.Model.fromJson(JSON.stringify(rawData));
+    model.value = go.Model.fromJson(JSON.stringify(modelData));
   };
 
   fr.readAsText(await filesStore.configuration.getFile());
