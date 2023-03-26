@@ -6,56 +6,56 @@
       class="mb-2.5 bg-[#fff1] rounded b-0"
     />
     <label>.png</label>
-  </div>
-  <div class="relative">
-    <canvas
-      class="w-full absolute"
-      ref="grid"
-      @contextmenu.prevent
-      @mousedown="onPixelClick"
-      @mouseout="onMouseOut"
-      @mousemove="onPointerMove($event.clientX, $event.clientY)"
-      @touchstart.prevent="onPixelClick($event.touches[0])"
-      @touchmove="
-        onPointerMove($event.touches[0].clientX, $event.touches[0].clientY)
-      "
-    >
-    </canvas>
-    <canvas class="w-full" ref="pixels"></canvas>
-    <canvas class="hidden" ref="imageData"></canvas>
-  </div>
-  <div class="h-8" ref="coordinates"></div>
-  <div class="flex gap-2.5">
-    <BaseButton
-      tooltip="W̲ipe canvas"
-      icon="fa-eraser"
-      @click="wipePixelCanvas"
-    />
-    <BaseButton
-      tooltip="M̲irror from left to right"
-      icon="fa-arrows-left-right-to-line"
-      @click="mirror"
-    />
-    <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
-    <BaseButton tooltip="R̲esize" icon="fa-crop" @click="resize" />
-    <!-- <button @click="alert('WIP')" title="Switch L̲ayer (WIP)">
+    <div class="relative">
+      <canvas
+        class="w-full absolute"
+        ref="grid"
+        @contextmenu.prevent
+        @mousedown="onPixelClick"
+        @mouseout="onMouseOut"
+        @mousemove="onPointerMove($event.clientX, $event.clientY)"
+        @touchstart.prevent="onPixelClick($event.touches[0])"
+        @touchmove="
+          onPointerMove($event.touches[0].clientX, $event.touches[0].clientY)
+        "
+      >
+      </canvas>
+      <canvas class="w-full" ref="pixels"></canvas>
+      <canvas class="hidden" ref="imageData"></canvas>
+    </div>
+    <div class="h-8" ref="coordinates"></div>
+    <div class="flex gap-2.5">
+      <BaseButton
+        tooltip="W̲ipe canvas"
+        icon="fa-eraser"
+        @click="wipePixelCanvas"
+      />
+      <BaseButton
+        tooltip="M̲irror from left to right"
+        icon="fa-arrows-left-right-to-line"
+        @click="mirror"
+      />
+      <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
+      <BaseButton tooltip="R̲esize" icon="fa-crop" @click="resize" />
+      <!-- <button @click="alert('WIP')" title="Switch L̲ayer (WIP)">
       <span class="ti-layers"></span>
     </button> -->
-    <BaseButton
-      tooltip="Upload (Control+U)"
-      icon="fa-file-arrow-up"
-      @click="uploadInput?.click()"
-    />
-    <input
-      class="hidden"
-      ref="uploadInput"
-      type="file"
-      @change="upload"
-      accept="image/png, image/jpeg"
-    />
-    <!-- <button @click="download" title="Download (Control+S)">
+      <BaseButton
+        tooltip="Upload (Control+U)"
+        icon="fa-file-arrow-up"
+        @click="uploadInput?.click()"
+      />
+      <input
+        class="hidden"
+        ref="uploadInput"
+        type="file"
+        @change="upload"
+        accept="image/png, image/jpeg"
+      />
+      <!-- <button @click="download" title="Download (Control+S)">
       <span class="ti-download"></span>
     </button> -->
+    </div>
   </div>
 </template>
 
@@ -120,11 +120,6 @@ function historyPrevious() {
   }
 }
 
-const onMouseOut = () => {
-  if (!coordinates.value) return;
-  coordinates.value.innerHTML = "";
-};
-
 function historyNext() {
   if (currentDataIndex.value < dataHistory.value.length - 1) {
     currentDataIndex.value++;
@@ -132,6 +127,11 @@ function historyNext() {
   }
 }
 // HISTORY END
+
+const onMouseOut = () => {
+  if (!coordinates.value) return;
+  coordinates.value.innerHTML = "";
+};
 
 function init(width = INITIAL_WIDTH, height = INITIAL_HEIGHT) {
   if (!imageData.value || !pixels.value || !grid.value) return;

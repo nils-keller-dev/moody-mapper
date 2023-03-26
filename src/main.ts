@@ -9,6 +9,7 @@ import {
   faImages,
   faInfinity,
   faSave,
+  faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createPinia } from "pinia";
@@ -25,7 +26,8 @@ library.add(
   faArrowsLeftRightToLine,
   faEye,
   faCrop,
-  faFileArrowUp
+  faFileArrowUp,
+  faXmark
 );
 
 const pinia = createPinia();
