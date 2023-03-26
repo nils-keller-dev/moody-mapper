@@ -139,7 +139,7 @@ onMounted(initDiagram);
   height: 100%;
 }
 
-canvas {
+#diagramDiv canvas {
   outline: none;
   background-color: white;
   filter: invert(1);
