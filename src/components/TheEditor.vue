@@ -1,5 +1,6 @@
 <template>
-  <input id="fileName" value="filename" ref="fileName" /><label>.png</label>
+  <input id="fileName" value="filename" ref="fileName" />
+  <label>.png</label>
   <div id="canvasContainer">
     <canvas
       id="grid"
@@ -19,24 +20,26 @@
   </div>
   <div id="coordinates" ref="coordinates"></div>
   <div id="buttons">
-    <button @click="wipePixelCanvas" title="W̲ipe canvas">
-      <span class="ti-layout-sidebar-none"></span>
-    </button>
-    <button @click="mirror" title="M̲irror from left to right">
-      <span class="ti-shift-right-alt"></span>
-    </button>
-    <button @click="preview" title="P̲review">
-      <span class="ti-eye"></span>
-    </button>
-    <button @click="resize" title="R̲esize">
-      <span class="ti-ruler-alt-2"></span>
-    </button>
+    <BaseButton
+      tooltip="W̲ipe canvas"
+      icon="fa-eraser"
+      @click="wipePixelCanvas"
+    />
+    <BaseButton
+      tooltip="M̲irror from left to right"
+      icon="fa-arrows-left-right-to-line"
+      @click="mirror"
+    />
+    <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
+    <BaseButton tooltip="R̲esize" icon="fa-crop" @click="resize" />
     <!-- <button @click="alert('WIP')" title="Switch L̲ayer (WIP)">
       <span class="ti-layers"></span>
     </button> -->
-    <button @click="uploadInput?.click()" title="Upload (Control+U)">
-      <span class="ti-upload"></span>
-    </button>
+    <BaseButton
+      tooltip="Upload (Control+U)"
+      icon="fa-file-arrow-up"
+      @click="uploadInput?.click()"
+    />
     <input
       class="-hidden"
       id="uploadInput"
@@ -45,15 +48,16 @@
       @change="upload"
       accept="image/png, image/jpeg"
     />
-    <button @click="download" title="Download (Control+S)">
+    <!-- <button @click="download" title="Download (Control+S)">
       <span class="ti-download"></span>
-    </button>
+    </button> -->
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
 import { ref, onMounted } from "vue";
+import BaseButton from "./BaseButton.vue";
 
 type PixelData = Array<Array<number>>;
 

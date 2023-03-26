@@ -1,5 +1,10 @@
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
+  faArrowsLeftRightToLine,
+  faCrop,
+  faEraser,
+  faEye,
+  faFileArrowUp,
   faFileLines,
   faImages,
   faInfinity,
@@ -11,7 +16,17 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import "./assets/main.css";
 
-library.add(faFileLines, faImages, faInfinity, faSave);
+library.add(
+  faFileLines,
+  faImages,
+  faInfinity,
+  faSave,
+  faEraser,
+  faArrowsLeftRightToLine,
+  faEye,
+  faCrop,
+  faFileArrowUp
+);
 
 const pinia = createPinia();
 
