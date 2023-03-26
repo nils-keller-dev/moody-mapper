@@ -1,5 +1,9 @@
 <template>
-  <button @click="onClick" :title="tooltip">
+  <button
+    @click="emit('click')"
+    :title="tooltip"
+    class="w-10 h-10 text-xl border-0 bg-[#4287f5] text-white rounded cursor-pointer"
+  >
     <font-awesome-icon :icon="`fa-solid ${icon}`" />
   </button>
 </template>
@@ -11,21 +15,4 @@ defineProps<{
 }>();
 
 const emit = defineEmits(["click"]);
-
-const onClick = () => {
-  emit("click");
-};
 </script>
-
-<style scoped>
-button {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  border: none;
-  background-color: #4287f5;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-</style>

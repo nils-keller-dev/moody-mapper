@@ -1,9 +1,15 @@
 <template>
-  <input id="fileName" value="filename" ref="fileName" />
-  <label>.png</label>
-  <div id="canvasContainer">
+  <div class="text-white">
+    <input
+      value="filename"
+      ref="fileName"
+      class="mb-2.5 bg-[#fff1] rounded b-0"
+    />
+    <label>.png</label>
+  </div>
+  <div class="relative">
     <canvas
-      id="grid"
+      class="w-full absolute"
       ref="grid"
       @contextmenu.prevent
       @mousedown="onPixelClick"
@@ -15,11 +21,11 @@
       "
     >
     </canvas>
-    <canvas id="pixels" ref="pixels"></canvas>
-    <canvas class="-hidden" id="imageData" ref="imageData"></canvas>
+    <canvas class="w-full" ref="pixels"></canvas>
+    <canvas class="hidden" ref="imageData"></canvas>
   </div>
-  <div id="coordinates" ref="coordinates"></div>
-  <div id="buttons">
+  <div class="h-8" ref="coordinates"></div>
+  <div class="flex gap-2.5">
     <BaseButton
       tooltip="W̲ipe canvas"
       icon="fa-eraser"
@@ -41,8 +47,7 @@
       @click="uploadInput?.click()"
     />
     <input
-      class="-hidden"
-      id="uploadInput"
+      class="hidden"
       ref="uploadInput"
       type="file"
       @change="upload"
@@ -55,8 +60,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import { ref, onMounted } from "vue";
+import { computed, onMounted, ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 
 type PixelData = Array<Array<number>>;
@@ -200,8 +204,8 @@ function mirror() {
 function preview() {
   if (!grid.value || !pixels.value) return;
 
-  grid.value.classList.toggle("-hidden");
-  pixels.value.classList.toggle("-preview");
+  grid.value.classList.toggle("hidden");
+  pixels.value.classList.toggle("invert");
 }
 
 const resize = () => {
@@ -422,65 +426,3 @@ document.onkeydown = (e) => {
   }
 };
 </script>
-
-<style scoped>
-/* icons: https://themify.me/themify-icons */
-
-body {
-  background-color: #424f63;
-  color: white;
-  font-family: "Roboto", sans-serif;
-}
-
-canvas {
-  width: 100%;
-}
-
-#pixels.-preview {
-  filter: invert(1);
-}
-
-#grid {
-  position: absolute;
-}
-
-#canvasContainer {
-  position: relative;
-}
-
-#coordinates {
-  height: 30px;
-}
-
-.-hidden {
-  display: none;
-}
-
-#buttons {
-  display: flex;
-  gap: 10px;
-}
-
-#fileName {
-  margin-bottom: 10px;
-}
-
-button {
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  border: none;
-  background-color: #4287f5;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-input {
-  background-color: #fff1;
-  border-radius: 5px;
-  border: none;
-  color: inherit;
-  font: inherit;
-}
-</style>

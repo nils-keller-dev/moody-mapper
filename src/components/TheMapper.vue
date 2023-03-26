@@ -1,12 +1,12 @@
 <template>
-  <div class="main">
-    <div class="buttonWrapper">
+  <div class="flex flex-col items-center gap-2.5 h-full">
+    <div class="flex gap-2.5">
       <BaseButton
         tooltip="Import"
         icon="fa-file-lines"
         @click="onClickImport"
       />
-      <div class="verticalLine"></div>
+      <div class="h-auto border-l-2 border-dashed border-black"></div>
       <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
     </div>
     <GoDiagram />
@@ -134,27 +134,3 @@ const writeFile = async (
   await writable.close();
 };
 </script>
-
-<style scoped>
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  height: 100%;
-}
-
-.buttonWrapper {
-  display: flex;
-  gap: 10px;
-}
-
-input {
-  display: none;
-}
-
-.verticalLine {
-  border-left: 2px dashed black;
-  height: auto;
-}
-</style>

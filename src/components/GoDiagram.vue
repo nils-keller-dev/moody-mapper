@@ -1,5 +1,5 @@
 <template>
-  <div id="diagramDiv" />
+  <div id="diagramDiv" class="w-full h-full" />
 </template>
 
 <script lang="ts" setup>
@@ -134,11 +134,6 @@ onMounted(initDiagram);
 </script>
 
 <style>
-#diagramDiv {
-  width: 100%;
-  height: 100%;
-}
-
 #diagramDiv canvas {
   outline: none;
   background-color: white;
