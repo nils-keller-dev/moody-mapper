@@ -5,43 +5,45 @@ const SUPPORTED_IMAGE_TYPES = ["jpg", "jpeg", "png", "bmp"];
 
 export const useFilesStore = defineStore("files", {
   state: () => ({
-    faces: [] as Array<FileSystemFileHandle>,
+    faces: {} as Record<string, Array<FileSystemFileHandle>>,
     configuration: null as null | FileSystemFileHandle,
     arduinoFile: null as null | FileSystemFileHandle,
   }),
   actions: {
     async fillStore(dirHandle: FileSystemDirectoryHandle) {
-      const { getPathHandle } = useFile();
+      const { getPathHandle, extractFaceName } = useFile();
       const imagesHandle = await getPathHandle(
         dirHandle,
         "moody-images/images"
       );
 
-      const getFilesFromDirectory = async (
+      const getFacesFromDirectory = async (
         directory: FileSystemDirectoryHandle
-      ): Promise<FileSystemFileHandle[]> => {
-        const files: FileSystemFileHandle[] = [];
+      ) => {
+        const faces: Record<string, Array<FileSystemFileHandle>> = {};
 
         //@ts-ignore
         for await (const entry of directory.values()) {
           if (entry.kind === "directory") {
-            const subDirFiles = await getFilesFromDirectory(
-              entry as FileSystemDirectoryHandle
-            );
-            files.push(...subDirFiles);
-          } else if (
-            SUPPORTED_IMAGE_TYPES.includes(
-              entry.name.split(".")[1].toLowerCase()
-            )
-          ) {
-            files.push(await entry);
+            for await (const file of entry.values()) {
+              if (
+                SUPPORTED_IMAGE_TYPES.includes(
+                  file.name.split(".")[1].toLowerCase()
+                )
+              ) {
+                const faceName = extractFaceName(file.name);
+
+                if (!faces[faceName]) faces[faceName] = [];
+                faces[faceName].push(file);
+              }
+            }
           }
         }
 
-        return files;
+        return faces;
       };
 
-      this.faces = await getFilesFromDirectory(
+      this.faces = await getFacesFromDirectory(
         imagesHandle as FileSystemDirectoryHandle
       );
 

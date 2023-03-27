@@ -4,11 +4,13 @@
 
 <script lang="ts" setup>
 import { useDiagramStore } from "@/stores/diagram";
+import { useEditorStore } from "@/stores/editor";
 import go, { Size } from "gojs";
 import { storeToRefs } from "pinia";
 import { onMounted, watch, type Ref } from "vue";
 
 const { model, nodes } = storeToRefs(useDiagramStore());
+const { isOpen, face } = storeToRefs(useEditorStore());
 
 watch(model as Ref<go.Model>, (newModel: go.Model) => {
   diagram.model = newModel;
@@ -24,6 +26,11 @@ const initDiagram = () => {
 
   diagram.toolManager.draggingTool.isGridSnapEnabled = true;
   diagram.toolManager.draggingTool.gridSnapCellSize = new Size(160, 130);
+
+  const editNode = async (_e: go.InputEvent, obj: go.GraphObject) => {
+    isOpen.value = true;
+    face.value = obj.part?.data.name;
+  };
 
   diagram.nodeTemplate = $(
     go.Node,
@@ -61,6 +68,22 @@ const initDiagram = () => {
           strokeWidth: 4,
         }),
         $(go.Placeholder)
+      ),
+    },
+    {
+      contextMenu: $(
+        "ContextMenu",
+        $(
+          "ContextMenuButton",
+          {
+            "ButtonBorder.fill": "white",
+            _buttonFillOver: "skyblue",
+          },
+          $(go.TextBlock, "Edit"),
+          {
+            click: editNode,
+          }
+        )
       ),
     }
   );

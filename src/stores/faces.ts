@@ -1,3 +1,4 @@
+import { useFile } from "@/composables/file";
 import { defineStore } from "pinia";
 
 export const useFacesStore = defineStore("faces", {
@@ -5,22 +6,18 @@ export const useFacesStore = defineStore("faces", {
     faces: [] as Array<{ name: string; images: string[] }>,
   }),
   actions: {
-    async fillFaces(fileHandles: Array<FileSystemFileHandle>) {
+    async fillFaces(fileHandles: Record<string, Array<FileSystemFileHandle>>) {
       const faceGroups: Record<string, string[]> = {};
 
-      const files = await Promise.all(
-        fileHandles.map(
-          async (handle) => new File([await handle.getFile()], handle.name)
-        )
-      );
+      for (const [faceName, fileArray] of Object.entries(fileHandles)) {
+        const faces = await Promise.all(
+          fileArray.map(async (handle) =>
+            URL.createObjectURL(new File([await handle.getFile()], handle.name))
+          )
+        );
 
-      files.forEach((file) => {
-        // extract face name from file name
-        const faceName = file.name.split(".")[0].split("_")[0];
-
-        if (!faceGroups[faceName]) faceGroups[faceName] = [];
-        faceGroups[faceName].push(URL.createObjectURL(file));
-      });
+        faceGroups[faceName] = faces;
+      }
 
       const facesArray: Array<{ name: string; images: string[] }> = [];
       Object.keys(faceGroups).forEach((name) => {

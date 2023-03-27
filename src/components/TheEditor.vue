@@ -60,8 +60,13 @@
 </template>
 
 <script lang="ts" setup>
+import { useEditorStore } from "@/stores/editor";
+import { useFilesStore } from "@/stores/files";
+import { storeToRefs } from "pinia";
 import { computed, onMounted, ref } from "vue";
 import BaseButton from "./BaseButton.vue";
+
+const { face } = storeToRefs(useEditorStore());
 
 type PixelData = Array<Array<number>>;
 
@@ -96,13 +101,29 @@ onMounted(() => {
   setup();
 });
 
-const setup = () => {
-  if (!pixels.value || !grid.value || !imageData.value) return;
+const loadImage = async (file: File) => {
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
+  img.onload = () => {
+    init(img.width, img.height);
+    convertImgToData(img);
+    fillCanvasFromData();
+  };
+};
+
+const setup = async () => {
+  if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
+    return;
   pixelsCtx.value = pixels.value.getContext("2d");
   gridCtx.value = grid.value.getContext("2d");
   imageDataCtx.value = imageData.value.getContext("2d");
 
-  init();
+  fileName.value.value = face.value;
+
+  const file = await useFilesStore().faces[face.value][0].getFile();
+  loadImage(file);
+
+  // init();
 };
 
 // HISTORY
@@ -189,6 +210,8 @@ function wipePixelCanvas() {
 
   wipeCanvas(pixelsCtx.value, canvasWidth.value, canvasHeight.value);
   addHistory(data);
+
+  holdData.value = JSON.parse(JSON.stringify(currentData.value));
 }
 
 function mirror() {
@@ -240,13 +263,7 @@ function upload() {
   if (uploadInput.value.files?.length === 1) {
     const file = uploadInput.value.files[0];
     fileName.value.value = file.name.substring(0, file.name.lastIndexOf("."));
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
-    img.onload = () => {
-      init(img.width, img.height);
-      convertImgToData(img);
-      fillCanvasFromData();
-    };
+    loadImage(file);
   }
   uploadInput.value.value = "";
 }

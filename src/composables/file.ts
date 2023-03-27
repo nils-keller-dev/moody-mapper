@@ -47,5 +47,9 @@ export const useFile = () => {
     return currentHandle;
   };
 
-  return { getPathHandle, getFile };
+  const extractFaceName = (fileName: string) => {
+    return fileName.split(".")[0].split("_")[0];
+  };
+
+  return { getPathHandle, getFile, extractFaceName };
 };
