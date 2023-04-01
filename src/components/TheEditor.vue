@@ -73,7 +73,7 @@ const INITIAL_HEIGHT = 16;
 const currentWidth = ref(INITIAL_WIDTH);
 const currentHeight = ref(INITIAL_HEIGHT);
 const dataHistory = ref<Array<PixelData>>([]);
-const currentDataIndex = ref(0);
+const currentHistoryIndex = ref(0);
 const isButtonDown = ref(false);
 const holdValue = ref(1);
 const holdData = ref<PixelData>([]);
@@ -125,23 +125,25 @@ const setup = async () => {
 };
 
 // HISTORY
-const currentData = computed(() => dataHistory.value[currentDataIndex.value]);
+const currentData = computed(
+  () => dataHistory.value[currentHistoryIndex.value]
+);
 
 function addHistory(data: PixelData) {
-  dataHistory.value = dataHistory.value.slice(0, currentDataIndex.value + 1);
-  currentDataIndex.value = dataHistory.value.push(data) - 1;
+  dataHistory.value = dataHistory.value.slice(0, currentHistoryIndex.value + 1);
+  currentHistoryIndex.value = dataHistory.value.push(data) - 1;
 }
 
 function historyPrevious() {
-  if (currentDataIndex.value > 0) {
-    currentDataIndex.value--;
+  if (currentHistoryIndex.value > 0) {
+    currentHistoryIndex.value--;
     fillCanvasFromData();
   }
 }
 
 function historyNext() {
-  if (currentDataIndex.value < dataHistory.value.length - 1) {
-    currentDataIndex.value++;
+  if (currentHistoryIndex.value < dataHistory.value.length - 1) {
+    currentHistoryIndex.value++;
     fillCanvasFromData();
   }
 }
@@ -393,7 +395,7 @@ document.onmousedown = document.ontouchstart = () => {
 document.onmouseup = document.ontouchend = () => {
   isButtonDown.value = false;
   if (JSON.stringify(holdData) !== JSON.stringify(currentData.value)) {
-    currentDataIndex.value = Math.max(0, currentDataIndex.value - 1);
+    currentHistoryIndex.value = Math.max(0, currentHistoryIndex.value - 1);
     addHistory(JSON.parse(JSON.stringify(holdData.value)));
   }
 };
