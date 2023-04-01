@@ -1,4 +1,3 @@
-import { useFile } from "@/composables/file";
 import { defineStore } from "pinia";
 
 export const useFacesStore = defineStore("faces", {
