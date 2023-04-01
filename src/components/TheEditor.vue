@@ -59,7 +59,7 @@
 import { useEditorStore } from "@/stores/editor";
 import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 
 const { face } = storeToRefs(useEditorStore());
@@ -93,6 +93,7 @@ const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
 const faces = computed(() => useFilesStore().faces[face.value]);
 const currentLayer = ref(0);
+const previewIntervalId = ref();
 
 onMounted(() => {
   if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
@@ -216,6 +217,10 @@ const preview = () => {
 
   grid.value.classList.toggle("hidden");
   pixels.value.classList.toggle("invert");
+
+  previewIntervalId.value = previewIntervalId.value
+    ? clearInterval(previewIntervalId.value)
+    : setInterval(layer, 1000);
 };
 
 const save = () => {
@@ -389,12 +394,7 @@ document.onmouseup = document.ontouchend = () => {
   }
 };
 
-// KEY PRESSES
 document.onkeydown = (e) => {
-  // if (e.target?.matches("input")) {
-  //   return;
-  // }
-
   if (e.metaKey || e.ctrlKey) {
     if (e.key.toLowerCase() === "z") {
       if (e.shiftKey) {
@@ -414,9 +414,19 @@ document.onkeydown = (e) => {
       preview();
     } else if (e.key === "m") {
       mirror();
+    } else if (e.key === "l") {
+      layer();
     } else if (e.key === "w") {
       wipePixelCanvas();
     }
   }
 };
+
+onBeforeUnmount(() => {
+  document.onmousedown = null;
+  document.onmouseup = null;
+  document.ontouchstart = null;
+  document.ontouchend = null;
+  document.onkeydown = null;
+});
 </script>
