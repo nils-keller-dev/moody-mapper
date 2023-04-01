@@ -431,7 +431,7 @@ const onPointerUp = () => {
   }
 };
 
-document.onkeydown = (e) => {
+const onKeyDown = (e) => {
   if (e.metaKey || e.ctrlKey) {
     if (e.key.toLowerCase() === "z") {
       if (e.shiftKey) {
@@ -459,7 +459,9 @@ document.onkeydown = (e) => {
   }
 };
 
+document.addEventListener("keydown", onKeyDown);
+
 onBeforeUnmount(() => {
-  document.onkeydown = null;
+  document.removeEventListener("keydown", onKeyDown);
 });
 </script>
