@@ -460,10 +460,6 @@ document.onkeydown = (e) => {
 };
 
 onBeforeUnmount(() => {
-  document.onmousedown = null;
-  document.onmouseup = null;
-  document.ontouchstart = null;
-  document.ontouchend = null;
   document.onkeydown = null;
 });
 </script>
