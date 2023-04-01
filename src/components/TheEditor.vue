@@ -12,6 +12,8 @@
         ref="grid"
         @contextmenu.prevent
         @mousedown="onPixelClick"
+        @mouseup="onPointerUp"
+        @touchend="onPointerUp"
         @mouseout="onMouseOut"
         @mousemove="onPointerMove($event.clientX, $event.clientY)"
         @touchstart.prevent="onPixelClick($event.touches[0])"
@@ -75,6 +77,7 @@ const CANVAS_HEIGHT = IMAGE_HEIGHT * PIXEL_SIZE;
 
 const dataHistory = ref<Array<PixelData>>([]);
 const currentHistoryIndex = ref(0);
+const currentSaveIndex = ref(0);
 const isButtonDown = ref(false);
 const holdValue = ref(1);
 const holdData = ref<PixelData>([]);
@@ -95,7 +98,11 @@ const faces = computed(() => useFilesStore().faces[face.value]);
 const currentLayer = ref(0);
 const previewIntervalId = ref();
 
-onMounted(() => {
+const hasUnsavedChanges = computed(
+  () => currentHistoryIndex.value !== currentSaveIndex.value
+);
+
+onMounted(async () => {
   if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
     return;
 
@@ -110,18 +117,22 @@ onMounted(() => {
 
   fileName.value.value = face.value;
 
-  wipePixelCanvas();
   drawGrid();
-  layer();
+  holdData.value = getEmptyData();
+  await loadImage(await faces.value[currentLayer.value].getFile());
 });
 
 const loadImage = async (file: File) => {
   const img = new Image();
   img.src = URL.createObjectURL(file);
-  img.onload = () => {
-    convertImgToData(img);
-    fillCanvasFromData();
-  };
+  await img.decode();
+
+  const data = generateDataFromImg(img);
+
+  if (data) {
+    addHistory(data);
+    fillCanvasFromData(data);
+  }
 };
 
 // HISTORY
@@ -147,11 +158,18 @@ const historyNext = () => {
     fillCanvasFromData();
   }
 };
+
+const wipeHistory = () => {
+  dataHistory.value = [];
+  currentHistoryIndex.value = 0;
+};
+
 // HISTORY END
 
 const onMouseOut = () => {
   if (!coordinates.value) return;
   coordinates.value.innerHTML = "";
+  isButtonDown.value = false;
 };
 
 const drawGrid = () => {
@@ -159,16 +177,18 @@ const drawGrid = () => {
 
   gridCtx.value.beginPath();
   gridCtx.value.strokeStyle = "#eee";
-  currentData.value.forEach((column, x) => {
-    column.forEach((_, y) => {
-      gridCtx.value?.rect(
-        x * PIXEL_SIZE,
-        y * PIXEL_SIZE,
+
+  for (let i = 0; i < IMAGE_WIDTH; i++) {
+    for (let j = 0; j < IMAGE_HEIGHT; j++) {
+      gridCtx.value.rect(
+        i * PIXEL_SIZE,
+        j * PIXEL_SIZE,
         PIXEL_SIZE,
         PIXEL_SIZE
       );
-    });
-  });
+    }
+  }
+
   gridCtx.value.stroke();
 
   gridCtx.value.beginPath();
@@ -185,11 +205,10 @@ const drawGrid = () => {
   gridCtx.value.stroke();
 };
 
-const getEmptyData = () => {
-  return Array.from({ length: IMAGE_WIDTH }, () =>
+const getEmptyData = () =>
+  Array.from({ length: IMAGE_WIDTH }, () =>
     Array.from({ length: IMAGE_HEIGHT }, () => 0)
   );
-};
 
 const wipePixelCanvas = () => {
   if (!pixelsCtx.value) return;
@@ -209,10 +228,12 @@ const mirror = () => {
   });
 
   addHistory(data);
-  fillCanvasFromData();
+  fillCanvasFromData(data);
 };
 
 const preview = () => {
+  if (!confirmUnsaved()) return;
+
   if (!grid.value || !pixels.value) return;
 
   grid.value.classList.toggle("hidden");
@@ -225,13 +246,15 @@ const preview = () => {
 
 const save = () => {
   if (!imageData.value) return;
-  fillCanvasFromData(imageDataCtx.value, 1);
+  fillCanvasFromData(undefined, imageDataCtx.value, 1);
 
   imageData.value.toBlob(async (blob) => {
     // @ts-ignore
     const writable = await faces.value[currentLayer.value].createWritable();
     writable.write(blob);
     writable.close();
+
+    currentSaveIndex.value = currentHistoryIndex.value;
   });
 };
 
@@ -245,12 +268,27 @@ const upload = () => {
   uploadInput.value.value = "";
 };
 
+const confirmUnsaved = () => {
+  if (
+    hasUnsavedChanges.value &&
+    !confirm("You have unsaved changes that will be lost. Proceed anyways?")
+  ) {
+    return false;
+  }
+
+  wipeHistory();
+  currentSaveIndex.value = 0;
+  return true;
+};
+
 const layer = async () => {
+  if (!confirmUnsaved()) return;
+
   currentLayer.value = (currentLayer.value + 1) % faces.value.length;
   loadImage(await faces.value[currentLayer.value].getFile());
 };
 
-const convertImgToData = (img: HTMLImageElement) => {
+const generateDataFromImg = (img: HTMLImageElement) => {
   if (!imageDataCtx.value) return;
 
   imageDataCtx.value.drawImage(img, 0, 0);
@@ -263,9 +301,9 @@ const convertImgToData = (img: HTMLImageElement) => {
       data[x][y] = Number(redData) < 255 ? 1 : 0;
     });
   });
-  addHistory(data);
-
   wipeCanvas(imageDataCtx.value, IMAGE_WIDTH, IMAGE_HEIGHT);
+
+  return data;
 };
 
 const wipeCanvas = (
@@ -279,10 +317,10 @@ const wipeCanvas = (
 };
 
 const fillCanvasFromData = (
+  data = currentData.value,
   context = pixelsCtx.value,
   pixelSize = PIXEL_SIZE
 ) => {
-  const data = currentData.value;
   data.forEach((column, x) => {
     column.forEach((_, y) => {
       fillPixel(x, y, data[x][y], false, context, pixelSize);
@@ -323,6 +361,9 @@ const onPixelClick = (event: MouseEvent | Touch) => {
   const pixelData = Math.abs(currentData.value[x][y] - 1);
   fillPixel(x, y, pixelData, true);
   holdValue.value = pixelData;
+
+  isButtonDown.value = true;
+  holdData.value = JSON.parse(JSON.stringify(currentData.value));
 };
 
 const setCoordinatesDisplay = (x: number, y: number) => {
@@ -381,12 +422,7 @@ const onPointerMove = (xPos: number, yPos: number) => {
   }
 };
 
-document.onmousedown = document.ontouchstart = () => {
-  isButtonDown.value = true;
-  holdData.value = JSON.parse(JSON.stringify(currentData.value));
-};
-
-document.onmouseup = document.ontouchend = () => {
+const onPointerUp = () => {
   isButtonDown.value = false;
   if (JSON.stringify(holdData) !== JSON.stringify(currentData.value)) {
     currentHistoryIndex.value = Math.max(0, currentHistoryIndex.value - 1);
