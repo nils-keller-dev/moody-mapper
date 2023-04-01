@@ -67,11 +67,12 @@ const { face } = storeToRefs(useEditorStore());
 type PixelData = Array<Array<number>>;
 
 const PIXEL_SIZE = 25;
-const INITIAL_WIDTH = 32;
-const INITIAL_HEIGHT = 16;
+const IMAGE_WIDTH = 32;
+const IMAGE_HEIGHT = 16;
 
-const currentWidth = ref(INITIAL_WIDTH);
-const currentHeight = ref(INITIAL_HEIGHT);
+const CANVAS_WIDTH = IMAGE_WIDTH * PIXEL_SIZE;
+const CANVAS_HEIGHT = IMAGE_HEIGHT * PIXEL_SIZE;
+
 const dataHistory = ref<Array<PixelData>>([]);
 const currentHistoryIndex = ref(0);
 const isButtonDown = ref(false);
@@ -93,35 +94,33 @@ const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 const faces = computed(() => useFilesStore().faces[face.value]);
 const currentLayer = ref(0);
 
-const canvasWidth = computed(() => currentWidth.value * PIXEL_SIZE);
-const canvasHeight = computed(() => currentHeight.value * PIXEL_SIZE);
-
 onMounted(() => {
-  setup();
+  if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
+    return;
+
+  pixelsCtx.value = pixels.value.getContext("2d");
+  gridCtx.value = grid.value.getContext("2d");
+  imageDataCtx.value = imageData.value.getContext("2d");
+
+  pixels.value.width = grid.value.width = CANVAS_WIDTH;
+  pixels.value.height = grid.value.height = CANVAS_HEIGHT;
+  imageData.value.width = IMAGE_WIDTH;
+  imageData.value.height = IMAGE_HEIGHT;
+
+  fileName.value.value = face.value;
+
+  wipePixelCanvas();
+  drawGrid();
+  layer();
 });
 
 const loadImage = async (file: File) => {
   const img = new Image();
   img.src = URL.createObjectURL(file);
   img.onload = () => {
-    init(img.width, img.height);
     convertImgToData(img);
     fillCanvasFromData();
   };
-};
-
-const setup = async () => {
-  if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
-    return;
-  pixelsCtx.value = pixels.value.getContext("2d");
-  gridCtx.value = grid.value.getContext("2d");
-  imageDataCtx.value = imageData.value.getContext("2d");
-
-  fileName.value.value = face.value;
-
-  layer();
-
-  // init();
 };
 
 // HISTORY
@@ -129,24 +128,24 @@ const currentData = computed(
   () => dataHistory.value[currentHistoryIndex.value]
 );
 
-function addHistory(data: PixelData) {
+const addHistory = (data: PixelData) => {
   dataHistory.value = dataHistory.value.slice(0, currentHistoryIndex.value + 1);
   currentHistoryIndex.value = dataHistory.value.push(data) - 1;
-}
+};
 
-function historyPrevious() {
+const historyPrevious = () => {
   if (currentHistoryIndex.value > 0) {
     currentHistoryIndex.value--;
     fillCanvasFromData();
   }
-}
+};
 
-function historyNext() {
+const historyNext = () => {
   if (currentHistoryIndex.value < dataHistory.value.length - 1) {
     currentHistoryIndex.value++;
     fillCanvasFromData();
   }
-}
+};
 // HISTORY END
 
 const onMouseOut = () => {
@@ -154,19 +153,7 @@ const onMouseOut = () => {
   coordinates.value.innerHTML = "";
 };
 
-function init(width = INITIAL_WIDTH, height = INITIAL_HEIGHT) {
-  if (!imageData.value || !pixels.value || !grid.value) return;
-  currentWidth.value = imageData.value.width = width;
-  currentHeight.value = imageData.value.height = height;
-
-  pixels.value.width = grid.value.width = canvasWidth.value;
-  pixels.value.height = grid.value.height = canvasHeight.value;
-
-  wipePixelCanvas();
-  drawGrid();
-}
-
-function drawGrid() {
+const drawGrid = () => {
   if (!gridCtx.value) return;
 
   gridCtx.value.beginPath();
@@ -186,35 +173,35 @@ function drawGrid() {
   gridCtx.value.beginPath();
   gridCtx.value.strokeStyle = "#bbb";
 
-  const halfWidth = canvasWidth.value / 2;
+  const halfWidth = CANVAS_WIDTH / 2;
   gridCtx.value.moveTo(halfWidth, 0);
   gridCtx.value.lineTo(halfWidth, gridCtx.value.canvas.height);
 
-  const halfHeight = canvasHeight.value / 2;
+  const halfHeight = CANVAS_HEIGHT / 2;
   gridCtx.value.moveTo(0, halfHeight);
   gridCtx.value.lineTo(gridCtx.value.canvas.width, halfHeight);
 
   gridCtx.value.stroke();
-}
+};
 
-function getEmptyData() {
-  return Array.from({ length: currentWidth.value }, () =>
-    Array.from({ length: currentHeight.value }, () => 0)
+const getEmptyData = () => {
+  return Array.from({ length: IMAGE_WIDTH }, () =>
+    Array.from({ length: IMAGE_HEIGHT }, () => 0)
   );
-}
+};
 
-function wipePixelCanvas() {
+const wipePixelCanvas = () => {
   if (!pixelsCtx.value) return;
 
   const data = getEmptyData();
 
-  wipeCanvas(pixelsCtx.value, canvasWidth.value, canvasHeight.value);
+  wipeCanvas(pixelsCtx.value, CANVAS_WIDTH, CANVAS_HEIGHT);
   addHistory(data);
 
   holdData.value = JSON.parse(JSON.stringify(currentData.value));
-}
+};
 
-function mirror() {
+const mirror = () => {
   const data = JSON.parse(JSON.stringify(currentData.value));
   data.slice(0, data.length / 2).forEach((_, index: number) => {
     data[data.length - index - 1] = [...data[index]];
@@ -222,14 +209,14 @@ function mirror() {
 
   addHistory(data);
   fillCanvasFromData();
-}
+};
 
-function preview() {
+const preview = () => {
   if (!grid.value || !pixels.value) return;
 
   grid.value.classList.toggle("hidden");
   pixels.value.classList.toggle("invert");
-}
+};
 
 const save = () => {
   if (!imageData.value) return;
@@ -243,7 +230,7 @@ const save = () => {
   });
 };
 
-function upload() {
+const upload = () => {
   if (!uploadInput.value || !fileName.value) return;
   if (uploadInput.value.files?.length === 1) {
     const file = uploadInput.value.files[0];
@@ -251,14 +238,14 @@ function upload() {
     loadImage(file);
   }
   uploadInput.value.value = "";
-}
+};
 
 const layer = async () => {
   currentLayer.value = (currentLayer.value + 1) % faces.value.length;
   loadImage(await faces.value[currentLayer.value].getFile());
 };
 
-function convertImgToData(img: HTMLImageElement) {
+const convertImgToData = (img: HTMLImageElement) => {
   if (!imageDataCtx.value) return;
 
   imageDataCtx.value.drawImage(img, 0, 0);
@@ -273,36 +260,39 @@ function convertImgToData(img: HTMLImageElement) {
   });
   addHistory(data);
 
-  wipeCanvas(imageDataCtx.value, currentWidth.value, currentHeight.value);
-}
+  wipeCanvas(imageDataCtx.value, IMAGE_WIDTH, IMAGE_HEIGHT);
+};
 
-function wipeCanvas(
+const wipeCanvas = (
   context: CanvasRenderingContext2D,
   width: number,
   height: number
-) {
+) => {
   context.fillStyle = "white";
   context.rect(0, 0, width, height);
   context.fill();
-}
+};
 
-function fillCanvasFromData(context = pixelsCtx.value, pixelSize = PIXEL_SIZE) {
+const fillCanvasFromData = (
+  context = pixelsCtx.value,
+  pixelSize = PIXEL_SIZE
+) => {
   const data = currentData.value;
   data.forEach((column, x) => {
     column.forEach((_, y) => {
       fillPixel(x, y, data[x][y], false, context, pixelSize);
     });
   });
-}
+};
 
-function fillPixel(
+const fillPixel = (
   x: number,
   y: number,
   value: number,
   writeToHistory = false,
   context = pixelsCtx.value,
   pixelSize = PIXEL_SIZE
-) {
+) => {
   if (!context) return;
 
   if (writeToHistory) {
@@ -314,9 +304,9 @@ function fillPixel(
   }
   context.fillStyle = value ? "black" : "white";
   context.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
-}
+};
 
-function onPixelClick(event: MouseEvent | Touch) {
+const onPixelClick = (event: MouseEvent | Touch) => {
   const rect = pixels.value?.getBoundingClientRect();
   if (!rect) return;
 
@@ -328,23 +318,23 @@ function onPixelClick(event: MouseEvent | Touch) {
   const pixelData = Math.abs(currentData.value[x][y] - 1);
   fillPixel(x, y, pixelData, true);
   holdValue.value = pixelData;
-}
+};
 
-function setCoordinatesDisplay(x: number, y: number) {
+const setCoordinatesDisplay = (x: number, y: number) => {
   if (!coordinates.value) return;
   coordinates.value.innerHTML = `${x}, ${y}`;
-}
+};
 
-function getPixelValueForPosition(x: number) {
+const getPixelValueForPosition = (x: number) => {
   return (
     Math.ceil(
-      x / PIXEL_SIZE / ((pixels.value?.offsetWidth || NaN) / canvasWidth.value)
+      x / PIXEL_SIZE / ((pixels.value?.offsetWidth || NaN) / CANVAS_WIDTH)
     ) - 1
   );
-}
+};
 
 //Bresenham's line algorithm
-function drawLine(x0: number, y0: number, x1: number, y1: number) {
+const drawLine = (x0: number, y0: number, x1: number, y1: number) => {
   const deltaX = Math.abs(x1 - x0);
   const deltaY = Math.abs(y1 - y0);
   const slopeX = x0 < x1 ? 1 : -1;
@@ -364,16 +354,15 @@ function drawLine(x0: number, y0: number, x1: number, y1: number) {
       y0 += slopeY;
     }
   }
-}
+};
 
-function onPointerMove(xPos: number, yPos: number) {
+const onPointerMove = (xPos: number, yPos: number) => {
   const rect = pixels.value?.getBoundingClientRect();
   if (!rect) return;
 
   const x = getPixelValueForPosition(xPos - rect.left);
   const y = getPixelValueForPosition(yPos - rect.top);
-  if (x >= currentWidth.value || y >= currentHeight.value || x < 0 || y < 0)
-    return;
+  if (x >= IMAGE_WIDTH || y >= IMAGE_HEIGHT || x < 0 || y < 0) return;
 
   setCoordinatesDisplay(x, y);
   if (isButtonDown.value && currentData.value[x][y] !== holdValue.value) {
@@ -385,7 +374,7 @@ function onPointerMove(xPos: number, yPos: number) {
     );
     previousPointerPosition.value = { x, y };
   }
-}
+};
 
 document.onmousedown = document.ontouchstart = () => {
   isButtonDown.value = true;
@@ -420,14 +409,14 @@ document.onkeydown = (e) => {
     } else if (e.key === "u") {
       uploadInput.value?.click();
     }
-  }
-
-  if (e.key === "p") {
-    preview();
-  } else if (e.key === "m") {
-    mirror();
-  } else if (e.key === "w") {
-    wipePixelCanvas();
+  } else {
+    if (e.key === "p") {
+      preview();
+    } else if (e.key === "m") {
+      mirror();
+    } else if (e.key === "w") {
+      wipePixelCanvas();
+    }
   }
 };
 </script>
