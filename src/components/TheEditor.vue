@@ -37,11 +37,7 @@
       <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
     </div>
     <div class="flex gap-2.5 float-right">
-      <BaseButton
-        @click="alert('WIP')"
-        tooltip="Switch L̲ayer (WIP)"
-        icon="fa-layer-group"
-      />
+      <BaseButton @click="layer" tooltip="Switch L̲ayer" icon="fa-layer-group" />
       <BaseButton
         tooltip="Upload (Control+U)"
         icon="fa-file-arrow-up"
@@ -54,11 +50,7 @@
         @change="upload"
         accept="image/png, image/jpeg"
       />
-      <BaseButton
-        @click="download"
-        tooltip="Download (Control+S)"
-        icon="fa-save"
-      />
+      <BaseButton @click="save" tooltip="Save (Control+S)" icon="fa-save" />
     </div>
   </div>
 </template>
@@ -98,6 +90,9 @@ const pixelsCtx = ref<CanvasRenderingContext2D | null>();
 const gridCtx = ref<CanvasRenderingContext2D | null>();
 const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
+const faces = computed(() => useFilesStore().faces[face.value]);
+const currentLayer = ref(0);
+
 const canvasWidth = computed(() => currentWidth.value * PIXEL_SIZE);
 const canvasHeight = computed(() => currentHeight.value * PIXEL_SIZE);
 
@@ -124,8 +119,7 @@ const setup = async () => {
 
   fileName.value.value = face.value;
 
-  const file = await useFilesStore().faces[face.value][0].getFile();
-  loadImage(file);
+  layer();
 
   // init();
 };
@@ -235,15 +229,17 @@ function preview() {
   pixels.value.classList.toggle("invert");
 }
 
-function download() {
+const save = () => {
   if (!imageData.value) return;
   fillCanvasFromData(imageDataCtx.value, 1);
 
-  const anchor = document.createElement("a");
-  anchor.href = imageData.value.toDataURL("image/png");
-  anchor.download = fileName.value?.value || "";
-  anchor.click();
-}
+  imageData.value.toBlob(async (blob) => {
+    // @ts-ignore
+    const writable = await faces.value[currentLayer.value].createWritable();
+    writable.write(blob);
+    writable.close();
+  });
+};
 
 function upload() {
   if (!uploadInput.value || !fileName.value) return;
@@ -254,6 +250,11 @@ function upload() {
   }
   uploadInput.value.value = "";
 }
+
+const layer = async () => {
+  currentLayer.value = (currentLayer.value + 1) % faces.value.length;
+  loadImage(await faces.value[currentLayer.value].getFile());
+};
 
 function convertImgToData(img: HTMLImageElement) {
   if (!imageDataCtx.value) return;
@@ -413,7 +414,7 @@ document.onkeydown = (e) => {
     } else if (e.key === "y") {
       historyNext();
     } else if (e.key === "s") {
-      download();
+      save();
     } else if (e.key === "u") {
       uploadInput.value?.click();
     }
@@ -423,8 +424,6 @@ document.onkeydown = (e) => {
     preview();
   } else if (e.key === "m") {
     mirror();
-  } else if (e.key === "r") {
-    resize();
   } else if (e.key === "w") {
     wipePixelCanvas();
   }
