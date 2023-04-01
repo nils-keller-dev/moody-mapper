@@ -223,9 +223,10 @@ const wipePixelCanvas = () => {
 
 const mirror = () => {
   const data = JSON.parse(JSON.stringify(currentData.value));
-  data.slice(0, data.length / 2).forEach((_, index: number) => {
-    data[data.length - index - 1] = [...data[index]];
-  });
+
+  for (let i = 0; i < data.length / 2; i++) {
+    data[data.length - i - 1] = [...data[i]];
+  }
 
   addHistory(data);
   fillCanvasFromData(data);
