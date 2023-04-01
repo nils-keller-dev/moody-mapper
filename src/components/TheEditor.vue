@@ -114,7 +114,9 @@ onMounted(async () => {
 
   pixelsCtx.value = pixels.value.getContext("2d");
   gridCtx.value = grid.value.getContext("2d");
-  imageDataCtx.value = imageData.value.getContext("2d");
+  imageDataCtx.value = imageData.value.getContext("2d", {
+    willReadFrequently: true,
+  });
 
   pixels.value.width = grid.value.width = CANVAS_WIDTH;
   pixels.value.height = grid.value.height = CANVAS_HEIGHT;
