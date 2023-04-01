@@ -1,21 +1,21 @@
+import App from "@/App.vue";
+import "@/assets/main.css";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faArrowsLeftRightToLine,
-  faCrop,
   faEraser,
   faEye,
   faFileArrowUp,
   faFileLines,
   faImages,
   faInfinity,
+  faLayerGroup,
   faSave,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import { createPinia } from "pinia";
 import { createApp } from "vue";
-import App from "./App.vue";
-import "./assets/main.css";
 
 library.add(
   faFileLines,
@@ -25,9 +25,9 @@ library.add(
   faEraser,
   faArrowsLeftRightToLine,
   faEye,
-  faCrop,
   faFileArrowUp,
-  faXmark
+  faXmark,
+  faLayerGroup
 );
 
 const pinia = createPinia();

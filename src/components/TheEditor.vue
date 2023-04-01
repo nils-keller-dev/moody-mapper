@@ -18,13 +18,12 @@
         @touchmove="
           onPointerMove($event.touches[0].clientX, $event.touches[0].clientY)
         "
-      >
-      </canvas>
-      <canvas class="w-full" ref="pixels"></canvas>
-      <canvas class="hidden" ref="imageData"></canvas>
+      />
+      <canvas class="w-full" ref="pixels" />
+      <canvas class="hidden" ref="imageData" />
     </div>
-    <div class="h-8" ref="coordinates"></div>
-    <div class="flex gap-2.5">
+    <div class="h-8" ref="coordinates" />
+    <div class="flex gap-2.5 float-left">
       <BaseButton
         tooltip="W̲ipe canvas"
         icon="fa-eraser"
@@ -36,10 +35,13 @@
         @click="mirror"
       />
       <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
-      <BaseButton tooltip="R̲esize" icon="fa-crop" @click="resize" />
-      <!-- <button @click="alert('WIP')" title="Switch L̲ayer (WIP)">
-      <span class="ti-layers"></span>
-    </button> -->
+    </div>
+    <div class="flex gap-2.5 float-right">
+      <BaseButton
+        @click="alert('WIP')"
+        tooltip="Switch L̲ayer (WIP)"
+        icon="fa-layer-group"
+      />
       <BaseButton
         tooltip="Upload (Control+U)"
         icon="fa-file-arrow-up"
@@ -52,9 +54,11 @@
         @change="upload"
         accept="image/png, image/jpeg"
       />
-      <!-- <button @click="download" title="Download (Control+S)">
-      <span class="ti-download"></span>
-    </button> -->
+      <BaseButton
+        @click="download"
+        tooltip="Download (Control+S)"
+        icon="fa-save"
+      />
     </div>
   </div>
 </template>
@@ -230,23 +234,6 @@ function preview() {
   grid.value.classList.toggle("hidden");
   pixels.value.classList.toggle("invert");
 }
-
-const resize = () => {
-  const width = window.prompt(
-    "input the desired width",
-    currentWidth.value.toString()
-  );
-
-  if (width) {
-    const height = window.prompt(
-      "input the desired height",
-      currentHeight.value.toString()
-    );
-    if (height) {
-      init(Number(width), Number(height));
-    }
-  }
-};
 
 function download() {
   if (!imageData.value) return;
