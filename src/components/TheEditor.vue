@@ -61,7 +61,7 @@
 import { useEditorStore } from "@/stores/editor";
 import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseButton from "./BaseButton.vue";
 
 const { face } = storeToRefs(useEditorStore());
@@ -101,6 +101,12 @@ const previewIntervalId = ref();
 const hasUnsavedChanges = computed(
   () => currentHistoryIndex.value !== currentSaveIndex.value
 );
+
+const emit = defineEmits(["unsavedChange"]);
+
+watch(hasUnsavedChanges, (hasUnsavedChanges) => {
+  emit("unsavedChange", hasUnsavedChanges);
+});
 
 onMounted(async () => {
   if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
