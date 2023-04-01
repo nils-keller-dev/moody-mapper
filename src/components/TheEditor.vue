@@ -352,7 +352,7 @@ function drawLine(x0: number, y0: number, x1: number, y1: number) {
   let err = deltaX - deltaY;
 
   while (x0 !== x1 || y0 !== y1) {
-    fillPixel(x0, y0, holdValue, false);
+    fillPixel(x0, y0, holdValue.value, false);
 
     const err2 = err * 2;
     if (err2 > -deltaY) {
