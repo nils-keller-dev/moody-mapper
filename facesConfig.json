@@ -3,103 +3,103 @@
   "nodeDataArray": [
     {
       "key": 0,
-      "text": "0 - ahegao",
+      "text": "ahegao",
       "name": "ahegao",
       "loc": "160 260"
     },
     {
       "key": 1,
-      "text": "1 - cold",
+      "text": "cold",
       "name": "cold",
       "loc": "0 390"
     },
     {
       "key": 2,
-      "text": "2 - confused",
+      "text": "confused",
       "name": "confused",
       "loc": "640 260"
     },
     {
       "key": 3,
-      "text": "3 - dead",
+      "text": "dead",
       "name": "dead",
       "loc": "480 520"
     },
     {
       "key": 4,
-      "text": "4 - frown",
+      "text": "frown",
       "name": "frown",
       "loc": "480 390"
     },
     {
       "key": 5,
-      "text": "5 - glad",
+      "text": "glad",
       "name": "glad",
       "loc": "800 130"
     },
     {
       "key": 6,
-      "text": "6 - grin",
+      "text": "grin",
       "name": "grin",
       "loc": "480 130"
     },
     {
       "key": 7,
-      "text": "7 - happy",
+      "text": "happy",
       "name": "happy",
       "loc": "480 0"
     },
     {
       "key": 8,
-      "text": "8 - hot",
+      "text": "hot",
       "name": "hot",
       "loc": "0 130"
     },
     {
       "key": 9,
-      "text": "9 - owo",
+      "text": "owo",
       "name": "owo",
       "loc": "800 260"
     },
     {
       "key": 10,
-      "text": "10 - polite",
+      "text": "polite",
       "name": "polite",
       "loc": "320 260"
     },
     {
       "key": 11,
-      "text": "11 - shock",
+      "text": "shock",
       "name": "shock",
       "loc": "0 520"
     },
     {
       "key": 12,
-      "text": "12 - skull",
+      "text": "skull",
       "name": "skull",
       "loc": "480 650"
     },
     {
       "key": 13,
-      "text": "13 - speechless",
+      "text": "speechless",
       "name": "speechless",
       "loc": "480 260"
     },
     {
       "key": 14,
-      "text": "14 - surprised",
+      "text": "surprised",
       "name": "surprised",
       "loc": "320 130"
     },
     {
       "key": 15,
-      "text": "15 - unsure",
+      "text": "unsure",
       "name": "unsure",
       "loc": "320 390"
     },
     {
       "key": 16,
-      "text": "16 - uwu",
+      "text": "uwu",
       "name": "uwu",
       "loc": "960 260"
     }

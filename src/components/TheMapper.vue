@@ -109,30 +109,20 @@ const refreshNodes = async (countChanged = false) => {
 
   await facesStore.fillFaces(filesStore.faces);
 
-  const modelData = JSON.parse(model.value?.toJson() || "{}");
-
-  const initialModelData = JSON.parse(JSON.stringify(modelData.linkDataArray));
-
   facesStore.faces.forEach((face, index) => {
-    const node = modelData.nodeDataArray.find(
-      (n: NodeData) => n.name === face.name
+    const newNode = model.value?.nodeDataArray.find(
+      (n) => n.name === face.name
     );
 
-    if (node) {
-      node.images = face.images;
-      updateLinkDataArray(
-        initialModelData,
-        modelData.linkDataArray,
-        node.key,
-        index
-      );
-      node.key = index;
-    } else {
-      modelData.nodeDataArray.push(getFaceNode(face, index));
-    }
+    model.value?.commit((d) => {
+      if (newNode) {
+        d.setDataProperty(newNode, "images", face.images);
+        d.setKeyForNodeData(newNode, index);
+      } else {
+        d.addNodeData(getFaceNode(face, index));
+      }
+    }, `refresh node data for ${face.name}}`);
   });
-
-  model.value = go.Model.fromJson(JSON.stringify(modelData));
 };
 
 const getFaceNode = (
@@ -144,7 +134,7 @@ const getFaceNode = (
 ) => ({
   key: index,
   images: face.images,
-  text: `${index} - ${face.name}`,
+  text: face.name,
   name: face.name,
 });
 
