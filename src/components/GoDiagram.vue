@@ -111,12 +111,11 @@ const initDiagram = () => {
     if (!faceName) return;
 
     const { createNewFile } = useFile();
-    const filesStore = useFilesStore();
 
-    const faceFolderHandle = await filesStore.imagesHandle!.getDirectoryHandle(
-      faceName,
-      { create: true }
-    );
+    const faceFolderHandle =
+      await useFilesStore().imagesHandle!.getDirectoryHandle(faceName, {
+        create: true,
+      });
 
     const base64 = await (await fetch(BLANK_FACE_32X16)).blob();
 

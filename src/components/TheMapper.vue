@@ -71,8 +71,16 @@ const loadFacesFromStore = () => {
     model.value?.commit((d) => {
       if (node) {
         d.setDataProperty(node, "images", face.images);
-        d.setKeyForNodeData(node, index);
       } else {
+        facesStore.faces.slice(index + 1).forEach((_face, i) => {
+          const currentFaceIndex = facesStore.faces.length - i - 1;
+          const node = model.value?.findNodeDataForKey(currentFaceIndex - 1);
+
+          if (node) {
+            d.setKeyForNodeData(node, currentFaceIndex);
+          }
+        });
+
         d.addNodeData({
           key: index,
           images: face.images,
