@@ -53,6 +53,10 @@ const importConfig = async () => {
   fr.onload = (e) => {
     const configData = JSON.parse(e.target?.result as string);
 
+    configData.nodeDataArray = configData.nodeDataArray.filter(
+      (node: NodeData) => filesStore.faces[node.name]
+    );
+
     model.value = new go.GraphLinksModel(
       configData.nodeDataArray,
       configData.linkDataArray
@@ -71,6 +75,7 @@ const loadFacesFromStore = () => {
     model.value?.commit((d) => {
       if (node) {
         d.setDataProperty(node, "images", face.images);
+        d.setKeyForNodeData(node, index);
       } else {
         facesStore.faces.slice(index + 1).forEach((_face, i) => {
           const currentFaceIndex = facesStore.faces.length - i - 1;
