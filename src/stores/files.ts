@@ -1,5 +1,5 @@
-import { defineStore } from "pinia";
 import { useFile } from "@/composables/file";
+import { defineStore } from "pinia";
 
 const SUPPORTED_IMAGE_TYPES = ["jpg", "jpeg", "png", "bmp"];
 
@@ -8,18 +8,39 @@ export const useFilesStore = defineStore("files", {
     faces: {} as Record<string, Array<FileSystemFileHandle>>,
     configuration: null as null | FileSystemFileHandle,
     arduinoFile: null as null | FileSystemFileHandle,
+    imagesHandle: null as null | FileSystemDirectoryHandle,
   }),
   actions: {
     async fillStore(dirHandle: FileSystemDirectoryHandle) {
-      const { getPathHandle, extractFaceName } = useFile();
-      const imagesHandle = await getPathHandle(
+      const { getPathHandle } = useFile();
+      this.imagesHandle = (await getPathHandle(
         dirHandle,
         "moody-images/images"
-      );
+      )) as FileSystemDirectoryHandle;
 
-      const getFacesFromDirectory = async (
-        directory: FileSystemDirectoryHandle
-      ) => {
+      await this.loadFaces();
+
+      this.configuration = (await getPathHandle(
+        dirHandle,
+        "moody-mapper/facesConfig.json"
+      )) as FileSystemFileHandle;
+
+      this.arduinoFile = (await getPathHandle(
+        dirHandle,
+        "moody-arduino/moody/facesConfig.h"
+      )) as FileSystemFileHandle;
+    },
+    async loadFaces() {
+      this.faces = await this.getFacesFromDirectory(
+        this.imagesHandle as FileSystemDirectoryHandle
+      );
+    },
+  },
+  getters: {
+    getFacesFromDirectory() {
+      return async (directory: FileSystemDirectoryHandle) => {
+        const { extractFaceName } = useFile();
+
         const faces: Record<string, Array<FileSystemFileHandle>> = {};
 
         //@ts-ignore
@@ -42,20 +63,6 @@ export const useFilesStore = defineStore("files", {
 
         return faces;
       };
-
-      this.faces = await getFacesFromDirectory(
-        imagesHandle as FileSystemDirectoryHandle
-      );
-
-      this.configuration = (await getPathHandle(
-        dirHandle,
-        "moody-mapper/facesConfig.json"
-      )) as FileSystemFileHandle;
-
-      this.arduinoFile = (await getPathHandle(
-        dirHandle,
-        "moody-arduino/moody/facesConfig.h"
-      )) as FileSystemFileHandle;
     },
   },
 });

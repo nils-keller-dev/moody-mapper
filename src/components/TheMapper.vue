@@ -9,7 +9,7 @@
       <div class="h-auto border-l-2 border-dashed border-black"></div>
       <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
     </div>
-    <GoDiagram />
+    <GoDiagram @facesChange="refreshNodes" />
   </div>
 </template>
 
@@ -68,19 +68,12 @@ const importConfig = async () => {
       if (nodeFromConfig) {
         node.loc = nodeFromConfig.loc;
 
-        if (nodeFromConfig.key !== node.key) {
-          modelData.linkDataArray.forEach((link: LinkData, index: number) => {
-            const linkFromConfig = configData.linkDataArray[index];
-
-            if (linkFromConfig.from === nodeFromConfig.key) {
-              link.from = node.key;
-            }
-
-            if (linkFromConfig.to === nodeFromConfig.key) {
-              link.to = node.key;
-            }
-          });
-        }
+        updateLinkDataArray(
+          configData.linkDataArray,
+          modelData.linkDataArray,
+          nodeFromConfig.key,
+          node.key
+        );
       }
     });
 
@@ -90,13 +83,71 @@ const importConfig = async () => {
   fr.readAsText(await filesStore.configuration.getFile());
 };
 
+const updateLinkDataArray = (
+  oldLinkData: Array<LinkData>,
+  newLinkData: Array<LinkData>,
+  oldKey: number,
+  newKey: number
+) => {
+  if (oldKey === newKey) return;
+
+  newLinkData.forEach((link: LinkData, index: number) => {
+    const oldLink = oldLinkData[index];
+
+    if (oldLink.from === oldKey) {
+      link.from = newKey;
+    }
+
+    if (oldLink.to === oldKey) {
+      link.to = newKey;
+    }
+  });
+};
+
+const refreshNodes = async (newFaces = false) => {
+  await filesStore.loadFaces();
+  if (newFaces) await facesStore.fillFaces(filesStore.faces);
+  const modelData = JSON.parse(model.value?.toJson() || "{}");
+
+  const initialModelData = JSON.parse(JSON.stringify(modelData.linkDataArray));
+
+  facesStore.faces.forEach((face, index) => {
+    const node = modelData.nodeDataArray.find(
+      (n: NodeData) => n.name === face.name
+    );
+
+    if (node) {
+      node.images = face.images;
+      updateLinkDataArray(
+        initialModelData,
+        modelData.linkDataArray,
+        node.key,
+        index
+      );
+      node.key = index;
+    } else {
+      modelData.nodeDataArray.push(getFaceNode(face, index));
+    }
+  });
+
+  model.value = go.Model.fromJson(JSON.stringify(modelData));
+};
+
+const getFaceNode = (
+  face: {
+    name: string;
+    images: string[];
+  },
+  index: number
+) => ({
+  key: index,
+  images: face.images,
+  text: `${index} - ${face.name}`,
+  name: face.name,
+});
+
 const displayNodes = () => {
-  const faceNodes = facesStore.faces.map((face, index) => ({
-    key: index,
-    images: face.images,
-    text: `${index} - ${face.name}`,
-    name: face.name,
-  }));
+  const faceNodes = facesStore.faces.map(getFaceNode);
 
   model.value = new go.GraphLinksModel(faceNodes, []);
 };

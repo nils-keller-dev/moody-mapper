@@ -51,5 +51,19 @@ export const useFile = () => {
     return fileName.split(".")[0].split("_")[0];
   };
 
-  return { getPathHandle, getFile, extractFaceName };
+  const createNewFile = async (
+    dirHandle: FileSystemDirectoryHandle,
+    fileName: string,
+    content: Blob
+  ) => {
+    const fileHandle = await dirHandle.getFileHandle(fileName, {
+      create: true,
+    });
+    // @ts-ignore
+    const writable = await fileHandle.createWritable();
+    await writable.write(content);
+    await writable.close();
+  };
+
+  return { getPathHandle, getFile, extractFaceName, createNewFile };
 };

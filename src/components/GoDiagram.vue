@@ -3,8 +3,11 @@
 </template>
 
 <script lang="ts" setup>
+import { useFile } from "@/composables/file";
+import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
 import { useDiagramStore } from "@/stores/diagram";
 import { useEditorStore } from "@/stores/editor";
+import { useFilesStore } from "@/stores/files";
 import go, { Size } from "gojs";
 import { storeToRefs } from "pinia";
 import { onMounted, watch, type Ref } from "vue";
@@ -18,6 +21,8 @@ watch(model as Ref<go.Model>, (newModel: go.Model) => {
 });
 
 let diagram: go.Diagram;
+
+const emits = defineEmits(["facesChange"]);
 
 const initDiagram = () => {
   const $ = go.GraphObject.make;
@@ -100,6 +105,33 @@ const initDiagram = () => {
         })
       ),
     }
+  );
+
+  const newFace = async () => {
+    const faceName = prompt("Enter a name for the new face");
+    if (!faceName) return;
+
+    const { createNewFile } = useFile();
+    const filesStore = useFilesStore();
+
+    const faceFolderHandle = await filesStore.imagesHandle!.getDirectoryHandle(
+      faceName,
+      { create: true }
+    );
+
+    const base64 = await (await fetch(BLANK_FACE_32X16)).blob();
+
+    await createNewFile(faceFolderHandle, faceName + ".png", base64);
+    await createNewFile(faceFolderHandle, faceName + "_2.png", base64);
+
+    emits("facesChange", true);
+  };
+
+  diagram.contextMenu = $(
+    "ContextMenu",
+    $("ContextMenuButton", $(go.TextBlock, "New face"), {
+      click: newFace,
+    })
   );
 
   const setStrokeTransparent = (_e: go.InputEvent, link: go.GraphObject) => {
