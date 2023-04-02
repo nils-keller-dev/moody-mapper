@@ -24,12 +24,28 @@ const initDiagram = () => {
 
   diagram = new go.Diagram("diagramDiv");
 
+  diagram.commandHandler.doKeyDown = function () {
+    const key = this.diagram.lastInput.key;
+    if (key === "Backspace" || key === "Del") {
+      deleteNode(this.diagram.lastInput);
+      return;
+    }
+
+    go.CommandHandler.prototype.doKeyDown.call(this);
+  };
+
   diagram.toolManager.draggingTool.isGridSnapEnabled = true;
   diagram.toolManager.draggingTool.gridSnapCellSize = new Size(160, 130);
 
   const editNode = async (_e: go.InputEvent, obj: go.GraphObject) => {
     isOpen.value = true;
     face.value = obj.part?.data.name;
+  };
+
+  const deleteNode = (e: go.InputEvent) => {
+    if (confirm("Are you sure you want to delete this node?")) {
+      e.diagram.commandHandler.deleteSelection();
+    }
   };
 
   diagram.nodeTemplate = $(
@@ -71,19 +87,17 @@ const initDiagram = () => {
       ),
     },
     {
+      doubleClick: editNode,
+    },
+    {
       contextMenu: $(
         "ContextMenu",
-        $(
-          "ContextMenuButton",
-          {
-            "ButtonBorder.fill": "white",
-            _buttonFillOver: "skyblue",
-          },
-          $(go.TextBlock, "Edit"),
-          {
-            click: editNode,
-          }
-        )
+        $("ContextMenuButton", $(go.TextBlock, "Edit"), {
+          click: editNode,
+        }),
+        $("ContextMenuButton", $(go.TextBlock, "Delete"), {
+          click: deleteNode,
+        })
       ),
     }
   );
