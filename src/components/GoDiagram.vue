@@ -73,7 +73,7 @@ const initDiagram = () => {
       height: 40,
     }),
     {
-      toolTip: $("ToolTip", $(go.TextBlock, new go.Binding("text", "text"))),
+      toolTip: $("ToolTip", $(go.TextBlock, new go.Binding("text", "name"))),
     },
     new go.Binding("location", "loc", go.Point.parse).makeTwoWay(
       go.Point.stringify

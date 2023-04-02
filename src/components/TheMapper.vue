@@ -76,7 +76,6 @@ const loadFacesFromStore = () => {
         d.addNodeData({
           key: index,
           images: face.images,
-          text: face.name,
           name: face.name,
         });
       }

@@ -3,103 +3,86 @@
   "nodeDataArray": [
     {
       "key": 0,
-      "text": "ahegao",
       "name": "ahegao",
       "loc": "160 260"
     },
     {
       "key": 1,
-      "text": "cold",
       "name": "cold",
       "loc": "0 390"
     },
     {
       "key": 2,
-      "text": "confused",
       "name": "confused",
       "loc": "640 260"
     },
     {
       "key": 3,
-      "text": "dead",
       "name": "dead",
       "loc": "480 520"
     },
     {
       "key": 4,
-      "text": "frown",
       "name": "frown",
       "loc": "480 390"
     },
     {
       "key": 5,
-      "text": "glad",
       "name": "glad",
       "loc": "800 130"
     },
     {
       "key": 6,
-      "text": "grin",
       "name": "grin",
       "loc": "480 130"
     },
     {
       "key": 7,
-      "text": "happy",
       "name": "happy",
       "loc": "480 0"
     },
     {
       "key": 8,
-      "text": "hot",
       "name": "hot",
       "loc": "0 130"
     },
     {
       "key": 9,
-      "text": "owo",
       "name": "owo",
       "loc": "800 260"
     },
     {
       "key": 10,
-      "text": "polite",
       "name": "polite",
       "loc": "320 260"
     },
     {
       "key": 11,
-      "text": "shock",
       "name": "shock",
       "loc": "0 520"
     },
     {
       "key": 12,
-      "text": "skull",
       "name": "skull",
       "loc": "480 650"
     },
     {
       "key": 13,
-      "text": "speechless",
       "name": "speechless",
       "loc": "480 260"
     },
     {
       "key": 14,
-      "text": "surprised",
       "name": "surprised",
       "loc": "320 130"
     },
     {
       "key": 15,
-      "text": "unsure",
       "name": "unsure",
       "loc": "320 390"
     },
     {
       "key": 16,
-      "text": "uwu",
       "name": "uwu",
       "loc": "960 260"
     }
