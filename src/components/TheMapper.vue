@@ -15,7 +15,6 @@
 
 <script setup lang="ts">
 import { useMapping } from "@/composables/mapping";
-import type { LinkData } from "@/constants/interfaces/LinkData";
 import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
@@ -41,7 +40,6 @@ const onClickImport = async () => {
 
   await filesStore.fillStore(dirHandle);
   await facesStore.fillFaces(filesStore.faces);
-  displayNodes();
   await importConfig();
 };
 
@@ -54,53 +52,35 @@ const importConfig = async () => {
 
   fr.onload = (e) => {
     const configData = JSON.parse(e.target?.result as string);
-    const modelData = JSON.parse(model.value?.toJson() || "{}");
 
-    modelData.linkDataArray = JSON.parse(
-      JSON.stringify(configData.linkDataArray)
+    model.value = new go.GraphLinksModel(
+      configData.nodeDataArray,
+      configData.linkDataArray
     );
 
-    modelData.nodeDataArray.forEach((node: NodeData) => {
-      const nodeFromConfig = configData.nodeDataArray.find(
-        (n: NodeData) => node.name === n.name
-      ) as NodeData;
-
-      if (nodeFromConfig) {
-        node.loc = nodeFromConfig.loc;
-
-        updateLinkDataArray(
-          configData.linkDataArray,
-          modelData.linkDataArray,
-          nodeFromConfig.key,
-          node.key
-        );
-      }
-    });
-
-    model.value = go.Model.fromJson(JSON.stringify(modelData));
+    loadFacesFromStore();
   };
 
   fr.readAsText(await filesStore.configuration.getFile());
 };
 
-const updateLinkDataArray = (
-  oldLinkData: Array<LinkData>,
-  newLinkData: Array<LinkData>,
-  oldKey: number,
-  newKey: number
-) => {
-  if (oldKey === newKey) return;
+const loadFacesFromStore = () => {
+  facesStore.faces.forEach((face, index) => {
+    const node = model.value?.nodeDataArray.find((n) => n.name === face.name);
 
-  newLinkData.forEach((link: LinkData, index: number) => {
-    const oldLink = oldLinkData[index];
-
-    if (oldLink.from === oldKey) {
-      link.from = newKey;
-    }
-
-    if (oldLink.to === oldKey) {
-      link.to = newKey;
-    }
+    model.value?.commit((d) => {
+      if (node) {
+        d.setDataProperty(node, "images", face.images);
+        d.setKeyForNodeData(node, index);
+      } else {
+        d.addNodeData({
+          key: index,
+          images: face.images,
+          text: face.name,
+          name: face.name,
+        });
+      }
+    }, `update node data for ${face.name}}`);
   });
 };
 
@@ -109,39 +89,7 @@ const refreshNodes = async (countChanged = false) => {
 
   await facesStore.fillFaces(filesStore.faces);
 
-  facesStore.faces.forEach((face, index) => {
-    const newNode = model.value?.nodeDataArray.find(
-      (n) => n.name === face.name
-    );
-
-    model.value?.commit((d) => {
-      if (newNode) {
-        d.setDataProperty(newNode, "images", face.images);
-        d.setKeyForNodeData(newNode, index);
-      } else {
-        d.addNodeData(getFaceNode(face, index));
-      }
-    }, `refresh node data for ${face.name}}`);
-  });
-};
-
-const getFaceNode = (
-  face: {
-    name: string;
-    images: string[];
-  },
-  index: number
-) => ({
-  key: index,
-  images: face.images,
-  text: face.name,
-  name: face.name,
-});
-
-const displayNodes = () => {
-  const faceNodes = facesStore.faces.map(getFaceNode);
-
-  model.value = new go.GraphLinksModel(faceNodes, []);
+  loadFacesFromStore();
 };
 
 const onClickSave = async () => {
