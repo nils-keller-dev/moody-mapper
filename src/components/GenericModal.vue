@@ -22,6 +22,8 @@
 </template>
 
 <script lang="ts" setup>
+import { onBeforeUnmount } from "vue";
+
 defineProps<{
   modelValue: boolean;
 }>();
@@ -31,6 +33,18 @@ const emit = defineEmits(["update:modelValue"]);
 const close = () => {
   emit("update:modelValue", false);
 };
+
+const onKeyDown = (e: KeyboardEvent) => {
+  if (e.key === "Escape") {
+    close();
+  }
+};
+
+document.addEventListener("keydown", onKeyDown);
+
+onBeforeUnmount(() => {
+  document.removeEventListener("keydown", onKeyDown);
+});
 </script>
 
 <style scoped>
