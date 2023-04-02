@@ -104,9 +104,11 @@ const updateLinkDataArray = (
   });
 };
 
-const refreshNodes = async (newFaces = false) => {
-  await filesStore.loadFaces();
-  if (newFaces) await facesStore.fillFaces(filesStore.faces);
+const refreshNodes = async (countChanged = false) => {
+  if (countChanged) await filesStore.loadFaces();
+
+  await facesStore.fillFaces(filesStore.faces);
+
   const modelData = JSON.parse(model.value?.toJson() || "{}");
 
   const initialModelData = JSON.parse(JSON.stringify(modelData.linkDataArray));
@@ -184,4 +186,6 @@ const writeFile = async (
   await writable.write(contents);
   await writable.close();
 };
+
+defineExpose({ refreshNodes });
 </script>

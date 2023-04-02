@@ -102,7 +102,7 @@ const hasUnsavedChanges = computed(
   () => currentHistoryIndex.value !== currentSaveIndex.value
 );
 
-const emit = defineEmits(["unsavedChange"]);
+const emit = defineEmits(["unsavedChange", "save"]);
 
 watch(hasUnsavedChanges, (hasUnsavedChanges) => {
   emit("unsavedChange", hasUnsavedChanges);
@@ -264,6 +264,7 @@ const save = () => {
     writable.close();
 
     currentSaveIndex.value = currentHistoryIndex.value;
+    emit("save");
   });
 };
 

@@ -48,9 +48,8 @@ const initDiagram = () => {
   };
 
   const deleteNode = (e: go.InputEvent) => {
-    if (confirm("Are you sure you want to delete this node?")) {
+    if (confirm("Are you sure you want to delete this?"))
       e.diagram.commandHandler.deleteSelection();
-    }
   };
 
   diagram.nodeTemplate = $(

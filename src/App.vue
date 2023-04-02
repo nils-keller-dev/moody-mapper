@@ -1,7 +1,10 @@
 <template>
-  <TheMapper />
+  <TheMapper ref="mapper" />
   <GenericModal v-model="isModalOpen">
-    <TheEditor @unsavedChange="hasUnsavedChanges = $event" />
+    <TheEditor
+      @unsavedChange="hasUnsavedChanges = $event"
+      @save="mapper?.refreshNodes()"
+    />
   </GenericModal>
 </template>
 
@@ -15,6 +18,8 @@ import { computed, ref } from "vue";
 
 const { isOpen } = storeToRefs(useEditorStore());
 const hasUnsavedChanges = ref(false);
+
+const mapper = ref<typeof TheMapper | null>(null);
 
 const isModalOpen = computed({
   get() {
