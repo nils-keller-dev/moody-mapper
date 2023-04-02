@@ -27,5 +27,8 @@ export const useFacesStore = defineStore("faces", {
 
       this.faces = facesArray;
     },
+    deleteFace(faceName: string) {
+      this.faces = this.faces.filter((face) => face.name !== faceName);
+    },
   },
 });

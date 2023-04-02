@@ -7,6 +7,7 @@ import { useFile } from "@/composables/file";
 import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
 import { useDiagramStore } from "@/stores/diagram";
 import { useEditorStore } from "@/stores/editor";
+import { useFacesStore } from "@/stores/faces";
 import { useFilesStore } from "@/stores/files";
 import go, { Size } from "gojs";
 import { storeToRefs } from "pinia";
@@ -27,7 +28,7 @@ const emits = defineEmits(["facesChange"]);
 const initDiagram = () => {
   const $ = go.GraphObject.make;
 
-  diagram = new go.Diagram("diagramDiv");
+  diagram = new go.Diagram("diagramDiv", { maxSelectionCount: 1 });
 
   diagram.commandHandler.doKeyDown = function () {
     const key = this.diagram.lastInput.key;
@@ -48,8 +49,21 @@ const initDiagram = () => {
   };
 
   const deleteNode = (e: go.InputEvent) => {
-    if (confirm("Are you sure you want to delete this?"))
-      e.diagram.commandHandler.deleteSelection();
+    if (!confirm("Are you sure you want to delete this?")) return;
+
+    const filesStore = useFilesStore();
+    const { deleteDirectory } = useFile();
+    const { deleteFace } = useFacesStore();
+
+    e.diagram.selection.each((n) => {
+      if (!(n instanceof go.Node)) return;
+      deleteDirectory(filesStore.imagesHandle!, n.data.name);
+      deleteFace(n.data.name);
+    });
+
+    e.diagram.commandHandler.deleteSelection();
+
+    emits("facesChange", true);
   };
 
   diagram.nodeTemplate = $(

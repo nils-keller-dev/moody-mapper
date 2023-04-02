@@ -65,5 +65,18 @@ export const useFile = () => {
     await writable.close();
   };
 
-  return { getPathHandle, getFile, extractFaceName, createNewFile };
+  const deleteDirectory = async (
+    dirHandle: FileSystemDirectoryHandle,
+    name: string
+  ) => {
+    await dirHandle.removeEntry(name, { recursive: true });
+  };
+
+  return {
+    getPathHandle,
+    getFile,
+    extractFaceName,
+    createNewFile,
+    deleteDirectory,
+  };
 };
