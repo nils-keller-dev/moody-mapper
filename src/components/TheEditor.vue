@@ -1,11 +1,10 @@
 <template>
   <div class="text-white">
     <input
-      value="filename"
-      ref="fileName"
-      class="mb-2.5 bg-[#fff1] rounded b-0"
+      v-model="fileName"
+      @keydown.stop
+      class="mb-2.5 bg-[#fff1] rounded b-0 w-full text-center"
     />
-    <label>.png</label>
     <div class="relative">
       <canvas
         class="w-full absolute"
@@ -82,12 +81,12 @@ const isButtonDown = ref(false);
 const holdValue = ref(1);
 const holdData = ref<PixelData>([]);
 const previousPointerPosition = ref({ x: 0, y: 0 });
+const fileName = ref("");
 
 const pixels = ref<HTMLCanvasElement | null>(null);
 const grid = ref<HTMLCanvasElement | null>(null);
 const imageData = ref<HTMLCanvasElement | null>(null);
 const uploadInput = ref<HTMLInputElement | null>(null);
-const fileName = ref<HTMLInputElement | null>(null);
 const coordinates = ref<HTMLDivElement | null>(null);
 
 const pixelsCtx = ref<CanvasRenderingContext2D | null>();
@@ -109,8 +108,7 @@ watch(hasUnsavedChanges, (hasUnsavedChanges) => {
 });
 
 onMounted(async () => {
-  if (!pixels.value || !grid.value || !imageData.value || !fileName.value)
-    return;
+  if (!pixels.value || !grid.value || !imageData.value) return;
 
   pixelsCtx.value = pixels.value.getContext("2d");
   gridCtx.value = grid.value.getContext("2d");
@@ -123,7 +121,7 @@ onMounted(async () => {
   imageData.value.width = IMAGE_WIDTH;
   imageData.value.height = IMAGE_HEIGHT;
 
-  fileName.value.value = face.value;
+  fileName.value = face.value;
 
   drawGrid();
   holdData.value = getEmptyData();
@@ -269,10 +267,9 @@ const save = () => {
 };
 
 const upload = () => {
-  if (!uploadInput.value || !fileName.value) return;
+  if (!uploadInput.value) return;
   if (uploadInput.value.files?.length === 1) {
     const file = uploadInput.value.files[0];
-    fileName.value.value = file.name.substring(0, file.name.lastIndexOf("."));
     loadImage(file);
   }
   uploadInput.value.value = "";
@@ -440,33 +437,34 @@ const onPointerUp = () => {
   }
 };
 
-const onKeyDown = (e: KeyboardEvent) => {
-  e.preventDefault();
+const specialShortcutMap = {
+  z: (e: KeyboardEvent) => {
+    e.shiftKey ? historyNext() : historyPrevious();
+  },
+  y: historyNext,
+  s: save,
+  u: () => uploadInput.value?.click(),
+};
 
+const shortcutMap = {
+  p: preview,
+  m: mirror,
+  l: layer,
+  w: wipePixelCanvas,
+};
+
+const onKeyDown = (e: KeyboardEvent) => {
+  let funct;
   if (e.metaKey || e.ctrlKey) {
-    if (e.key.toLowerCase() === "z") {
-      if (e.shiftKey) {
-        historyNext();
-      } else {
-        historyPrevious();
-      }
-    } else if (e.key === "y") {
-      historyNext();
-    } else if (e.key === "s") {
-      save();
-    } else if (e.key === "u") {
-      uploadInput.value?.click();
-    }
+    funct = specialShortcutMap[e.key as keyof typeof specialShortcutMap];
   } else {
-    if (e.key === "p") {
-      preview();
-    } else if (e.key === "m") {
-      mirror();
-    } else if (e.key === "l") {
-      layer();
-    } else if (e.key === "w") {
-      wipePixelCanvas();
-    }
+    funct = shortcutMap[e.key as keyof typeof shortcutMap];
+  }
+
+  if (funct) {
+    funct(e);
+    e.preventDefault();
+    e.stopPropagation();
   }
 };
 

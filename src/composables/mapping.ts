@@ -10,7 +10,9 @@ export const useMapping = () => {
 
   const generateArduinoFaces = async () => {
     const canvas = new OffscreenCanvas(32, 16);
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", {
+      willReadFrequently: true,
+    });
     if (!ctx) throw new Error();
 
     const faceKeys = Object.keys(faceFiles.value).sort();

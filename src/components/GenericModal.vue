@@ -9,7 +9,7 @@
   <Transition>
     <div
       v-if="modelValue"
-      class="absolute top-0 bottom-0 left-0 right-0 w-3/4 h-fit z-50 m-auto p-4 pt-8 rounded-lg bg-blue-900"
+      class="absolute top-0 bottom-0 left-0 right-0 w-3/4 h-fit z-50 m-auto p-4 pt-10 rounded-lg bg-blue-900"
     >
       <font-awesome-icon
         icon="fa-solid fa-xmark"
