@@ -3,6 +3,7 @@
     <input
       v-model="fileName"
       @keydown.stop
+      disabled
       class="mb-2.5 bg-[#fff1] rounded b-0 w-full text-center"
     />
     <div class="relative">
