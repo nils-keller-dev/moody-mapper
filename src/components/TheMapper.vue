@@ -26,7 +26,8 @@ import GoDiagram from "./GoDiagram.vue";
 
 const facesStore = useFacesStore();
 const { model } = storeToRefs(useDiagramStore());
-const { generateConfigFile: generateArduinoConfig } = useMapping();
+const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
+  useMapping();
 const filesStore = useFilesStore();
 
 const onClickImport = async () => {
@@ -105,12 +106,17 @@ const refreshNodes = async (countChanged = false) => {
 };
 
 const onClickSave = async () => {
-  if (!filesStore.arduinoFile || !filesStore.configuration) {
+  if (
+    !filesStore.arduinoConfig ||
+    !filesStore.configuration ||
+    !filesStore.arduinoFaces
+  ) {
     window.alert("Please select a directory");
     return;
   }
 
-  writeFile(filesStore.arduinoFile, generateArduinoConfig());
+  writeFile(filesStore.arduinoFaces, await generateArduinoFaces());
+  writeFile(filesStore.arduinoConfig, generateArduinoConfig());
   writeFile(filesStore.configuration, generateConfiguration());
 };
 

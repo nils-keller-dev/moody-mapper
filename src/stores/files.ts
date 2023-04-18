@@ -7,7 +7,8 @@ export const useFilesStore = defineStore("files", {
   state: () => ({
     faces: {} as Record<string, Array<FileSystemFileHandle>>,
     configuration: null as null | FileSystemFileHandle,
-    arduinoFile: null as null | FileSystemFileHandle,
+    arduinoFaces: null as null | FileSystemFileHandle,
+    arduinoConfig: null as null | FileSystemFileHandle,
     imagesHandle: null as null | FileSystemDirectoryHandle,
   }),
   actions: {
@@ -25,9 +26,14 @@ export const useFilesStore = defineStore("files", {
         "moody-mapper/facesConfig.json"
       )) as FileSystemFileHandle;
 
-      this.arduinoFile = (await getPathHandle(
+      this.arduinoConfig = (await getPathHandle(
         dirHandle,
         "moody-arduino/moody/facesConfig.h"
+      )) as FileSystemFileHandle;
+
+      this.arduinoFaces = (await getPathHandle(
+        dirHandle,
+        "moody-arduino/moody/faces.h"
       )) as FileSystemFileHandle;
     },
     async loadFaces() {

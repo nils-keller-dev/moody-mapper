@@ -1,10 +1,78 @@
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
+import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 
 export const useMapping = () => {
   const { faces } = storeToRefs(useFacesStore());
   const { nodes } = storeToRefs(useDiagramStore());
+  const { faces: faceFiles } = storeToRefs(useFilesStore());
+
+  const generateArduinoFaces = async () => {
+    const canvas = new OffscreenCanvas(32, 16);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error();
+
+    const faceKeys = Object.keys(faceFiles.value).sort();
+
+    const outputData = [];
+
+    for (let i = 0; i < faceKeys.length; i++) {
+      const face = faceKeys[i];
+
+      const fileHandles = faceFiles.value[face].sort((a, b) =>
+        b.name.localeCompare(a.name)
+      );
+
+      const faceData = [];
+      for (let j = 0; j < fileHandles.length; j++) {
+        const fileHandle = fileHandles[j];
+        const file = await fileHandle.getFile();
+        const img = await createImageBitmap(file);
+
+        ctx.drawImage(img, 0, 0);
+        const pixelData = ctx.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        ).data;
+
+        const binaryStrings = generateBinaryStrings(pixelData);
+
+        faceData.push(`{${binaryStrings.join(", ")}}`);
+      }
+
+      let facesString = faceData.map((item) => `    ${item}`).join(",\n");
+      facesString = ["  {", facesString, "  }"].join("\n");
+
+      outputData.push(facesString);
+    }
+
+    const outputString = [
+      "static const byte allFaces[][2][64] PROGMEM = {",
+      outputData.join(",\n"),
+      "};\n",
+    ].join("\n");
+
+    return outputString;
+  };
+
+  const generateBinaryStrings = (pixelData: Uint8ClampedArray) => {
+    const redChannelData = Array.from(pixelData, (_, i) => pixelData[i * 4])
+      .filter((val) => val !== undefined)
+      .map((val) => (val ? 0 : 1));
+
+    const binaryStrings = [];
+
+    for (let i = 0; i < redChannelData.length; i += 8) {
+      const slice = redChannelData.slice(i, i + 8);
+      const binaryString = `0b${slice.join("")}`;
+      binaryStrings.push(binaryString);
+    }
+
+    return binaryStrings;
+  };
 
   const generateConfigFile = () => {
     const mappings = generateMappings();
@@ -87,5 +155,8 @@ ${fileMappings}};\n`;
     return fileMappings;
   };
 
-  return { generateConfigFile };
+  return {
+    generateConfigFile,
+    generateArduinoFaces,
+  };
 };
