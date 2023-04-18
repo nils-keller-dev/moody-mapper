@@ -1,6 +1,6 @@
 # Moody-Mapper
 
-Moody-Mapper is the mapping component of the [`Moody`](https://github.com/tsomic/moody) project. It is a tool for editing, creating and deleting facial expressions as well as mapping out the different images and their order. It also exports all necessary files to be used by the [`arduino`](https://github.com/tsomic/moody-arduino)
+Moody-Mapper is the mapping component of the [`Moody`](https://github.com/tsomic/moody) project. It is a tool for editing, creating and deleting facial expressions as well as mapping out the different images and their order. It also exports all necessary files to be used by the [`Arduino`](https://github.com/tsomic/moody-arduino)
 
 ## How To Use
 
