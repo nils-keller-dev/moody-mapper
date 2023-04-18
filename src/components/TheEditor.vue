@@ -257,6 +257,7 @@ const save = () => {
   fillCanvasFromData(undefined, imageDataCtx.value, 1);
 
   imageData.value.toBlob(async (blob) => {
+    // @ts-ignore
     const writable = await faces.value[currentLayer.value].createWritable();
     // @ts-ignore
     writable.write(blob);
