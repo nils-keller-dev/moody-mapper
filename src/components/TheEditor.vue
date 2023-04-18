@@ -441,6 +441,8 @@ const onPointerUp = () => {
 };
 
 const onKeyDown = (e: KeyboardEvent) => {
+  e.preventDefault();
+
   if (e.metaKey || e.ctrlKey) {
     if (e.key.toLowerCase() === "z") {
       if (e.shiftKey) {
