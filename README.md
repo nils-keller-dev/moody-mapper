@@ -4,9 +4,14 @@ Moody-Mapper is the mapping component of the [`Moody`](https://github.com/tsomic
 
 ## How To Use
 
-You should not clone this repository on its own but as part of the [`main repository`](https://github.com/tsomic/moody) (go there for details).
+### Step 1
 
-To use this tool, you need to run it locally.
+If you just want to use the tool, clone the [`main repository`](https://github.com/tsomic/moody) and visit the [moody-mapper website](https://moody-arduino.dev/).
+Then proceed with step 2.
+
+#### Running `moody-mapper` locally
+
+You should not clone this repository on its own but as part of the [`main repository`](https://github.com/tsomic/moody) (go there for details).
 
 ```bash
 cd moody-mapper
@@ -15,6 +20,8 @@ npm run dev
 ```
 
 And then open [http://localhost:5173/](http://localhost:5173/).
+
+### Step 2
 
 To get started you firstly need to import all the necessary files. To do this, click the first button and select the main `moody` folder.  
 This will import all the images from the [`moody-images`](https://github.com/tsomic/moody-images) repository and also the [config file](https://github.com/tsomic/moody-mapper/blob/main/facesConfig.json) that is located in this repository.
