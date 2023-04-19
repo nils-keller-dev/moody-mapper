@@ -6,6 +6,16 @@
       @save="mapper?.refreshNodes()"
     />
   </GenericModal>
+  <GenericModal :modelValue="isMobile()">
+    <p>The Moody Mapper is currently not supported on mobile devices.</p>
+    <p>
+      See
+      <a href="https://github.com/tsomic/moody" target="_blank">
+        the GitHub repository
+      </a>
+      for more information on how to use this tool.
+    </p>
+  </GenericModal>
 </template>
 
 <script setup lang="ts">
@@ -13,6 +23,7 @@ import GenericModal from "@/components/GenericModal.vue";
 import TheEditor from "@/components/TheEditor.vue";
 import TheMapper from "@/components/TheMapper.vue";
 import { useEditorStore } from "@/stores/editor";
+import { isMobile } from "is-mobile";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
