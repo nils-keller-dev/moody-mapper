@@ -6,7 +6,7 @@
       @save="mapper?.refreshNodes()"
     />
   </GenericModal>
-  <GenericModal :modelValue="isMobile()">
+  <GenericModal :modelValue="isMobile()" :isClosable="false">
     <p>The Moody Mapper is currently not supported on mobile devices.</p>
     <p>
       See
