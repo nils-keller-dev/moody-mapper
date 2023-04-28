@@ -9,6 +9,7 @@
       <div class="h-auto border-l-2 border-dashed border-black"></div>
       <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
     </div>
+    <JointDiagram />
     <GoDiagram @facesChange="refreshNodes" />
   </div>
 </template>
@@ -23,6 +24,7 @@ import go from "gojs";
 import { storeToRefs } from "pinia";
 import BaseButton from "./BaseButton.vue";
 import GoDiagram from "./GoDiagram.vue";
+import JointDiagram from "./JointDiagram.vue";
 
 const facesStore = useFacesStore();
 const { model } = storeToRefs(useDiagramStore());
