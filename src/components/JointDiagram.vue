@@ -10,9 +10,12 @@ import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
 import { DefaultLink } from "../elements/DefaultLink";
+import { useEditorStore } from "@/stores/editor";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
+const { isOpen, face } = storeToRefs(useEditorStore());
+
 const diagramStore = useDiagramStore();
 const animationInterval = ref<number>();
 const graph = new joint.dia.Graph();
@@ -63,9 +66,9 @@ onMounted(() => {
     linkView.addTools(toolsView);
   });
 
-  paper.value.on("blank:mouseover", () => {
-    paper.value.removeTools();
-  });
+  paper.value.on("blank:mouseover", paper.value.removeTools);
+
+  paper.value.on("element:pointerdblclick", editFace);
 
   fillFromStore();
 });
@@ -102,6 +105,7 @@ const addElement = (
   images: Array<string>
 ): RectangleImage => {
   const image = new RectangleImage({
+    name,
     images,
     position: { x, y },
     attrs: {
@@ -115,6 +119,13 @@ const addElement = (
   });
 
   return image.addTo(graph);
+};
+
+const editFace = (element: joint.dia.ElementView) => {
+  // @ts-ignore
+  const faceName = element.model.prop("name");
+  isOpen.value = true;
+  face.value = faceName;
 };
 
 watch(() => faces.value.length, fillFromStore);
