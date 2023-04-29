@@ -9,13 +9,13 @@ import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
+import { DefaultLink } from "../elements/DefaultLink";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
 const { elements } = storeToRefs(useDiagramStore());
 const animationInterval = ref<number>();
-const namespace = joint.shapes;
-const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+const graph = new joint.dia.Graph();
 const paper = ref();
 
 const switchAllFaces = () => {
@@ -44,7 +44,7 @@ const fillFromStore = () => {
 
   animationInterval.value = setInterval(switchAllFaces, 1e3);
 
-  const link = new joint.shapes.standard.Link();
+  const link = new DefaultLink();
 
   link.source(elements.value[0]);
   link.target(elements.value[1]);
@@ -55,21 +55,13 @@ watch(() => faces.value.length, fillFromStore);
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
-    cellViewNamespace: namespace,
     el: paperDiv.value,
     width: "100%",
     height: "100%",
     model: graph,
     gridSize: 30,
     linkPinning: false,
-    defaultLink: () =>
-      new joint.shapes.standard.Link({
-        attrs: {
-          line: {
-            stroke: "white",
-          },
-        },
-      }),
+    defaultLink: () => new DefaultLink(),
     validateConnection: (cellViewS, magnetS, cellViewT, magnetT) => {
       const links = graph.getLinks();
 
