@@ -13,45 +13,23 @@ import { DefaultLink } from "../elements/DefaultLink";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
-const { elements } = storeToRefs(useDiagramStore());
+const diagramStore = useDiagramStore();
 const animationInterval = ref<number>();
 const graph = new joint.dia.Graph();
 const paper = ref();
 
 const switchAllFaces = () => {
-  elements.value.forEach((element) => element.nextAnimationFrame());
+  diagramStore.elements.forEach((element) => element.nextAnimationFrame());
 };
 
-var targetArrowheadTool = new joint.linkTools.TargetArrowhead();
-var removeButton = new joint.linkTools.Remove();
-
-var toolsView = new joint.dia.ToolsView({
-  tools: [targetArrowheadTool, removeButton],
+const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
+const removeButton = new joint.linkTools.Remove({
+  distance: 8,
 });
 
-const fillFromStore = () => {
-  clearInterval(animationInterval.value);
-
-  graph.clear();
-
-  elements.value = [];
-
-  faces.value.forEach((face, index) => {
-    elements.value.push(
-      addElement(index * 40, Math.random() * 400, face.name, face.images)
-    );
-  });
-
-  animationInterval.value = setInterval(switchAllFaces, 1e3);
-
-  const link = new DefaultLink();
-
-  link.source(elements.value[0]);
-  link.target(elements.value[1]);
-  link.addTo(graph);
-};
-
-watch(() => faces.value.length, fillFromStore);
+const toolsView = new joint.dia.ToolsView({
+  tools: [targetArrowheadTool, removeButton],
+});
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
@@ -63,20 +41,19 @@ onMounted(() => {
     linkPinning: false,
     defaultLink: () => new DefaultLink(),
     validateConnection: (cellViewS, magnetS, cellViewT, magnetT) => {
-      const links = graph.getLinks();
+      if (magnetS === magnetT) return false;
 
+      const links = graph.getLinks();
       const sourceId = cellViewS.model.id;
       const targetId = cellViewT.model.id;
 
-      const isUniqueConnection = links.every(
+      return links.every(
         (link) =>
           !(
             link.getSourceElement()?.id === sourceId &&
             link.getTargetElement()?.id === targetId
           )
       );
-
-      return isUniqueConnection && magnetS !== magnetT;
     },
   });
 
@@ -90,6 +67,26 @@ onMounted(() => {
 
   fillFromStore();
 });
+
+const fillFromStore = () => {
+  clearInterval(animationInterval.value);
+  graph.clear();
+  diagramStore.$reset();
+
+  faces.value.forEach((face, index) => {
+    diagramStore.elements.push(
+      addElement(index * 40, Math.random() * 400, face.name, face.images)
+    );
+  });
+
+  animationInterval.value = setInterval(switchAllFaces, 1e3);
+
+  const link = new DefaultLink();
+
+  link.source(diagramStore.elements[0]);
+  link.target(diagramStore.elements[1]);
+  link.addTo(graph);
+};
 
 const addElement = (
   x: number,
@@ -112,6 +109,8 @@ const addElement = (
 
   return image.addTo(graph);
 };
+
+watch(() => faces.value.length, fillFromStore);
 </script>
 
 <style>

@@ -10,7 +10,7 @@
       <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
     </div>
     <JointDiagram />
-    <GoDiagram @facesChange="refreshNodes" />
+    <!-- <GoDiagram @facesChange="refreshNodes" /> -->
   </div>
 </template>
 
