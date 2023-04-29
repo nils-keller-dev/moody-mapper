@@ -1,8 +1,5 @@
 <template>
-  <div
-    ref="paperDiv"
-    class="w-full h-full m-auto border-2 border-black border-solid"
-  />
+  <div ref="paperDiv" class="border-2 border-black border-solid" />
 </template>
 
 <script lang="ts" setup>
@@ -80,12 +77,12 @@ onMounted(() => {
       const isUniqueConnection = links.every(
         (existingLink) =>
           !(
-            existingLink.source().id === cellViewS.model.id &&
-            existingLink.target().id === cellViewT.model.id
+            existingLink.getSourceElement()?.id === cellViewS.model.id &&
+            existingLink.getTargetElement()?.id === cellViewT.model.id
           )
       );
 
-      return isUniqueConnection && magnetS.id !== magnetT.id;
+      return isUniqueConnection && magnetS !== magnetT;
     },
   });
 
