@@ -1,8 +1,9 @@
 <template>
-  <div ref="paperDiv" class="border-2 border-black border-solid" />
+  <div ref="paperDiv" class="border-2 border-black border-solid bg-black" />
 </template>
 
 <script lang="ts" setup>
+import { RectangleImage } from "@/elements/RectangleImage";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
@@ -13,25 +14,20 @@ const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
 const { elements } = storeToRefs(useDiagramStore());
 const animationInterval = ref<number>();
-const graph = new joint.dia.Graph();
+const namespace = joint.shapes;
+const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 const paper = ref();
 
 const switchAllFaces = () => {
-  elements.value.forEach(switchFace);
+  elements.value.forEach((element) => element.nextAnimationFrame());
 };
 
-const toolsView = new joint.dia.ToolsView({
-  tools: [new joint.linkTools.Remove(), new joint.linkTools.TargetArrowhead()],
+var targetArrowheadTool = new joint.linkTools.TargetArrowhead();
+var removeButton = new joint.linkTools.Remove();
+
+var toolsView = new joint.dia.ToolsView({
+  tools: [targetArrowheadTool, removeButton],
 });
-
-// TODO fix typing
-// also: https://resources.jointjs.com/tutorials/joint/tutorials/Tsshape.html
-const switchFace = (element: joint.shapes.basic.Image | any) => {
-  const images = element.prop("images");
-  const currentImage = element.attr("image/xlinkHref");
-
-  element.attr("image/xlinkHref", images[currentImage === images[0] ? 1 : 0]);
-};
 
 const fillFromStore = () => {
   clearInterval(animationInterval.value);
@@ -55,30 +51,36 @@ const fillFromStore = () => {
   link.addTo(graph);
 };
 
-watch(
-  () => faces.value.length,
-  () => {
-    fillFromStore();
-  }
-);
+watch(() => faces.value.length, fillFromStore);
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
+    cellViewNamespace: namespace,
     el: paperDiv.value,
     width: "100%",
     height: "100%",
     model: graph,
-    gridSize: 100,
+    gridSize: 30,
     linkPinning: false,
-    defaultLink: () => new joint.shapes.standard.Link(),
+    defaultLink: () =>
+      new joint.shapes.standard.Link({
+        attrs: {
+          line: {
+            stroke: "white",
+          },
+        },
+      }),
     validateConnection: (cellViewS, magnetS, cellViewT, magnetT) => {
       const links = graph.getLinks();
 
+      const sourceId = cellViewS.model.id;
+      const targetId = cellViewT.model.id;
+
       const isUniqueConnection = links.every(
-        (existingLink) =>
+        (link) =>
           !(
-            existingLink.getSourceElement()?.id === cellViewS.model.id &&
-            existingLink.getTargetElement()?.id === cellViewT.model.id
+            link.getSourceElement()?.id === sourceId &&
+            link.getTargetElement()?.id === targetId
           )
       );
 
@@ -102,22 +104,16 @@ const addElement = (
   y: number,
   name: string,
   images: Array<string>
-): joint.shapes.basic.Image => {
-  const image = new joint.shapes.basic.Image({
-    name,
+): RectangleImage => {
+  const image = new RectangleImage({
     images,
     position: { x, y },
-    size: {
-      width: 200,
-      height: 100,
-    },
     attrs: {
+      label: {
+        text: name,
+      },
       image: {
         xlinkHref: images[0],
-        width: 32,
-        height: 16,
-        imageRendering: "pixelated",
-        magnet: true,
       },
     },
   });
@@ -125,3 +121,9 @@ const addElement = (
   return image.addTo(graph);
 };
 </script>
+
+<style>
+image {
+  filter: invert(1);
+}
+</style>
