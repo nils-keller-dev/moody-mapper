@@ -44,7 +44,9 @@ onMounted(() => {
       if (magnetS === magnetT) return false;
 
       const links = graph.getLinks();
+      // @ts-ignore
       const sourceId = cellViewS.model.id;
+      // @ts-ignore
       const targetId = cellViewT.model.id;
 
       return links.every(
@@ -73,9 +75,14 @@ const fillFromStore = () => {
   graph.clear();
   diagramStore.$reset();
 
-  faces.value.forEach((face, index) => {
+  const random = (max: number = 900, step: number = 30) => {
+    const r = Math.random() * max;
+    return r - (r % step);
+  };
+
+  faces.value.forEach((face) => {
     diagramStore.elements.push(
-      addElement(index * 40, Math.random() * 400, face.name, face.images)
+      addElement(random(), random(), face.name, face.images)
     );
   });
 
