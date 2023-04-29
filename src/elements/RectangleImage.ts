@@ -36,6 +36,7 @@ export class RectangleImage extends dia.Element {
           height: 50,
           imageRendering: "pixelated",
           cursor: "pointer",
+          style: "filter: invert(1)",
         },
       },
     };

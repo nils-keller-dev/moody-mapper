@@ -119,9 +119,3 @@ const addElement = (
 
 watch(() => faces.value.length, fillFromStore);
 </script>
-
-<style>
-image {
-  filter: invert(1);
-}
-</style>
