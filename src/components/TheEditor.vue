@@ -58,8 +58,9 @@
 </template>
 
 <script lang="ts" setup>
+// TODO load images from base64 data
 import { useEditorStore } from "@/stores/editor";
-import { useFilesStore } from "@/stores/files";
+// import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseButton from "./BaseButton.vue";

@@ -8,7 +8,6 @@ import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
 import { useDiagramStore } from "@/stores/diagram";
 import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
-import { useFilesStore } from "@/stores/files";
 import go, { Size } from "gojs";
 import { storeToRefs } from "pinia";
 import { onMounted, watch, type Ref } from "vue";

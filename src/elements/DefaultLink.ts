@@ -1,50 +1,12 @@
-import { dia, shapes } from "jointjs";
+import * as joint from "jointjs";
 
-export class DefaultLink extends dia.Link {
-  defaults() {
-    return {
-      // @ts-ignore
-      ...super.defaults,
-      type: "custom.DefaultLink",
-      size: {
-        width: 120,
-        height: 90,
-      },
+export class DefaultLink extends joint.shapes.standard.Link {
+  constructor(attributes?: joint.shapes.standard.LinkAttributes) {
+    super({
+      ...attributes,
       attrs: {
-        line: {
-          connection: true,
-          stroke: "white",
-          strokeWidth: 2,
-          targetMarker: {
-            type: "path",
-            d: "M 10 -5 0 0 10 5 z",
-          },
-          cursor: "pointer",
-        },
-        wrapper: {
-          connection: true,
-          strokeWidth: 10,
-          stroke: "transparent",
-          cursor: "pointer",
-        },
+        line: { stroke: "white" },
       },
-    };
+    });
   }
-
-  markup = [
-    {
-      tagName: "path",
-      selector: "wrapper",
-    },
-    {
-      tagName: "path",
-      selector: "line",
-    },
-  ];
 }
-
-Object.assign(shapes, {
-  custom: {
-    DefaultLink,
-  },
-});

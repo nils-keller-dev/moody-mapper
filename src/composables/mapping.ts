@@ -1,12 +1,12 @@
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
-import { useFilesStore } from "@/stores/files";
+// import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 
 export const useMapping = () => {
   const { faces } = storeToRefs(useFacesStore());
   const { nodes } = storeToRefs(useDiagramStore());
-  const { faces: faceFiles } = storeToRefs(useFilesStore());
+  // const { faces: faceFiles } = storeToRefs(useFilesStore());
 
   const generateArduinoFaces = async () => {
     const canvas = new OffscreenCanvas(32, 16);

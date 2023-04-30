@@ -19,7 +19,7 @@ import { useMapping } from "@/composables/mapping";
 import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
-import { useFilesStore } from "@/stores/files";
+// import { useFilesStore } from "@/stores/files";
 import type go from "gojs";
 import { storeToRefs } from "pinia";
 import BaseButton from "./BaseButton.vue";
@@ -30,50 +30,50 @@ const facesStore = useFacesStore();
 const { model, graphConfig } = storeToRefs(useDiagramStore());
 const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
   useMapping();
-const filesStore = useFilesStore();
+// const filesStore = useFilesStore();
 
 const onClickImport = async () => {
-  let dirHandle;
-  try {
-    dirHandle = await (window as any).showDirectoryPicker();
-  } catch {
-    console.log("Please select a directory");
-    return;
-  }
-
-  await filesStore.fillStore(dirHandle);
+  // TODO upload single config file
+  // let dirHandle;
+  // try {
+  //   dirHandle = await (window as any).showDirectoryPicker();
+  // } catch {
+  //   console.log("Please select a directory");
+  //   return;
+  // }
+  // await filesStore.fillStore(dirHandle);
   // await facesStore.fillFaces(filesStore.faces);
-  await importConfig();
+  // await importConfig();
 };
 
-const importConfig = async () => {
-  if (!filesStore.configuration) {
-    return false;
-  }
+// const importConfig = async () => {
+//   if (!filesStore.configuration) {
+//     return false;
+//   }
 
-  const fr = new FileReader();
+//   const fr = new FileReader();
 
-  fr.onload = (e) => {
-    const configData = e.target?.result as string;
+//   fr.onload = (e) => {
+//     const configData = e.target?.result as string;
 
-    console.log(configData);
+//     console.log(configData);
 
-    // configData.nodeDataArray = configData.nodeDataArray.filter(
-    //   (node: NodeData) => filesStore.faces[node.name]
-    // );
+//     // configData.nodeDataArray = configData.nodeDataArray.filter(
+//     //   (node: NodeData) => filesStore.faces[node.name]
+//     // );
 
-    // model.value = new go.GraphLinksModel(
-    //   configData.nodeDataArray,
-    //   configData.linkDataArray
-    // );
+//     // model.value = new go.GraphLinksModel(
+//     //   configData.nodeDataArray,
+//     //   configData.linkDataArray
+//     // );
 
-    graphConfig.value = configData;
+//     graphConfig.value = configData;
 
-    // loadFacesFromStore();
-  };
+//     // loadFacesFromStore();
+//   };
 
-  fr.readAsText(await filesStore.configuration.getFile());
-};
+//   fr.readAsText(await filesStore.configuration.getFile());
+// };
 
 const loadFacesFromStore = () => {
   facesStore.faces.forEach((face, index) => {
@@ -104,26 +104,24 @@ const loadFacesFromStore = () => {
 };
 
 const refreshNodes = async (countChanged = false) => {
-  if (countChanged) await filesStore.loadFaces();
-
-  await facesStore.fillFaces(filesStore.faces);
-
-  loadFacesFromStore();
+  // if (countChanged) await filesStore.loadFaces();
+  // await facesStore.fillFaces(filesStore.faces);
+  // loadFacesFromStore();
 };
 
 const onClickSave = async () => {
-  if (
-    !filesStore.arduinoConfig ||
-    !filesStore.configuration ||
-    !filesStore.arduinoFaces
-  ) {
-    window.alert("Please select a directory");
-    return;
-  }
-
-  writeFile(filesStore.arduinoFaces, await generateArduinoFaces());
-  writeFile(filesStore.arduinoConfig, generateArduinoConfig());
-  writeFile(filesStore.configuration, generateConfiguration());
+  // TODO Download files as zip (arduino files + config.json + readme)
+  // if (
+  //   !filesStore.arduinoConfig ||
+  //   !filesStore.configuration ||
+  //   !filesStore.arduinoFaces
+  // ) {
+  //   window.alert("Please select a directory");
+  //   return;
+  // }
+  // writeFile(filesStore.arduinoFaces, await generateArduinoFaces());
+  // writeFile(filesStore.arduinoConfig, generateArduinoConfig());
+  // writeFile(filesStore.configuration, generateConfiguration());
 };
 
 const generateConfiguration = () => {
