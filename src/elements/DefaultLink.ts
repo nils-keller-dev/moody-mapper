@@ -1,4 +1,4 @@
-import { dia } from "jointjs";
+import { dia, shapes } from "jointjs";
 
 export class DefaultLink extends dia.Link {
   defaults() {
@@ -42,3 +42,9 @@ export class DefaultLink extends dia.Link {
     },
   ];
 }
+
+Object.assign(shapes, {
+  custom: {
+    DefaultLink,
+  },
+});

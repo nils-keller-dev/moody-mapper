@@ -1,24 +1,25 @@
 <template>
-  <div ref="paperDiv" class="border-2 border-black border-solid bg-black" />
+  <div ref="paperDiv" class="border-2 border-black border-solid bg-[#228be6]" />
 </template>
 
 <script lang="ts" setup>
+import { DefaultLink } from "@/elements/DefaultLink";
 import { RectangleImage } from "@/elements/RectangleImage";
 import { useDiagramStore } from "@/stores/diagram";
+import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
-import { DefaultLink } from "../elements/DefaultLink";
-import { useEditorStore } from "@/stores/editor";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
 const { isOpen, face } = storeToRefs(useEditorStore());
-
 const diagramStore = useDiagramStore();
+
 const animationInterval = ref<number>();
-const graph = new joint.dia.Graph();
+const namespace = joint.shapes;
+const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 const paper = ref();
 
 const switchAllFaces = () => {
@@ -36,6 +37,7 @@ const toolsView = new joint.dia.ToolsView({
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
+    cellViewNamespace: namespace,
     el: paperDiv.value,
     width: "100%",
     height: "100%",
@@ -74,20 +76,23 @@ onMounted(() => {
 });
 
 const fillFromStore = () => {
+  if (!diagramStore.graphConfig) return;
   clearInterval(animationInterval.value);
   graph.clear();
-  diagramStore.$reset();
+  // diagramStore.$reset();
 
-  const random = (max: number = 900, step: number = 30) => {
-    const r = Math.random() * max;
-    return r - (r % step);
-  };
+  // const random = (max: number = 900, step: number = 30) => {
+  //   const r = Math.random() * max;
+  //   return r - (r % step);
+  // };
 
-  faces.value.forEach((face) => {
-    diagramStore.elements.push(
-      addElement(random(), random(), face.name, face.images)
-    );
-  });
+  // faces.value.forEach((face) => {
+  //   diagramStore.elements.push(
+  //     addElement(random(), random(), face.name, face.images)
+  //   );
+  // });
+  console.log(diagramStore.graphConfig);
+  graph.fromJSON(JSON.parse(diagramStore.graphConfig));
 
   animationInterval.value = setInterval(switchAllFaces, 1e3);
 
@@ -122,11 +127,13 @@ const addElement = (
 };
 
 const editFace = (element: joint.dia.ElementView) => {
-  // @ts-ignore
-  const faceName = element.model.prop("name");
-  isOpen.value = true;
-  face.value = faceName;
+  console.log(JSON.stringify(graph.toJSON()));
+
+  // // @ts-ignore
+  // const faceName = element.model.prop("name");
+  // isOpen.value = true;
+  // face.value = faceName;
 };
 
-watch(() => faces.value.length, fillFromStore);
+watch(() => diagramStore.graphConfig, fillFromStore);
 </script>

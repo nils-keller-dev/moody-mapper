@@ -20,14 +20,14 @@ import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
 import { useFilesStore } from "@/stores/files";
-import go from "gojs";
+import type go from "gojs";
 import { storeToRefs } from "pinia";
 import BaseButton from "./BaseButton.vue";
 import GoDiagram from "./GoDiagram.vue";
 import JointDiagram from "./JointDiagram.vue";
 
 const facesStore = useFacesStore();
-const { model } = storeToRefs(useDiagramStore());
+const { model, graphConfig } = storeToRefs(useDiagramStore());
 const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
   useMapping();
 const filesStore = useFilesStore();
@@ -42,7 +42,7 @@ const onClickImport = async () => {
   }
 
   await filesStore.fillStore(dirHandle);
-  await facesStore.fillFaces(filesStore.faces);
+  // await facesStore.fillFaces(filesStore.faces);
   await importConfig();
 };
 
@@ -54,18 +54,22 @@ const importConfig = async () => {
   const fr = new FileReader();
 
   fr.onload = (e) => {
-    const configData = JSON.parse(e.target?.result as string);
+    const configData = e.target?.result as string;
 
-    configData.nodeDataArray = configData.nodeDataArray.filter(
-      (node: NodeData) => filesStore.faces[node.name]
-    );
+    console.log(configData);
 
-    model.value = new go.GraphLinksModel(
-      configData.nodeDataArray,
-      configData.linkDataArray
-    );
+    // configData.nodeDataArray = configData.nodeDataArray.filter(
+    //   (node: NodeData) => filesStore.faces[node.name]
+    // );
 
-    loadFacesFromStore();
+    // model.value = new go.GraphLinksModel(
+    //   configData.nodeDataArray,
+    //   configData.linkDataArray
+    // );
+
+    graphConfig.value = configData;
+
+    // loadFacesFromStore();
   };
 
   fr.readAsText(await filesStore.configuration.getFile());

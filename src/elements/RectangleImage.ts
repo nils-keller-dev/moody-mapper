@@ -1,4 +1,4 @@
-import { dia } from "jointjs";
+import { dia, shapes } from "jointjs";
 
 export class RectangleImage extends dia.Element {
   defaults() {
@@ -64,3 +64,9 @@ export class RectangleImage extends dia.Element {
     this.attr("image/xlinkHref", images[currentImage === images[0] ? 1 : 0]);
   }
 }
+
+Object.assign(shapes, {
+  custom: {
+    RectangleImage,
+  },
+});

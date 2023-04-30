@@ -63,6 +63,7 @@ import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseButton from "./BaseButton.vue";
+import { useFacesStore } from "@/stores/faces";
 
 const { face } = storeToRefs(useEditorStore());
 
@@ -94,7 +95,10 @@ const pixelsCtx = ref<CanvasRenderingContext2D | null>();
 const gridCtx = ref<CanvasRenderingContext2D | null>();
 const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
-const faces = computed(() => useFilesStore().faces[face.value]);
+const faceFiles = computed(() => useFilesStore().faces[face.value]);
+const faces = computed(() =>
+  useFacesStore().faces.find((f) => f.name === face.value)
+);
 const currentLayer = ref(0);
 const previewIntervalId = ref();
 
@@ -126,7 +130,7 @@ onMounted(async () => {
 
   drawGrid();
   holdData.value = getEmptyData();
-  await loadImage(await faces.value[currentLayer.value].getFile());
+  await loadImage(await faceFiles.value[currentLayer.value].getFile());
 });
 
 const loadImage = async (file: File) => {
@@ -253,12 +257,14 @@ const preview = () => {
 };
 
 const save = () => {
-  if (!imageData.value) return;
+  if (!imageData.value || !faces.value) return;
   fillCanvasFromData(undefined, imageDataCtx.value, 1);
+
+  faces.value.images[currentLayer.value] = imageData.value.toDataURL();
 
   imageData.value.toBlob(async (blob) => {
     // @ts-ignore
-    const writable = await faces.value[currentLayer.value].createWritable();
+    const writable = await faceFiles.value[currentLayer.value].createWritable();
     // @ts-ignore
     writable.write(blob);
     writable.close();
@@ -293,8 +299,8 @@ const confirmUnsaved = () => {
 const layer = async () => {
   if (!confirmUnsaved()) return;
 
-  currentLayer.value = (currentLayer.value + 1) % faces.value.length;
-  loadImage(await faces.value[currentLayer.value].getFile());
+  currentLayer.value = (currentLayer.value + 1) % faceFiles.value.length;
+  loadImage(await faceFiles.value[currentLayer.value].getFile());
 };
 
 const generateDataFromImg = (img: HTMLImageElement) => {

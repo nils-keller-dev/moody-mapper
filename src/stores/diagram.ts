@@ -6,5 +6,6 @@ export const useDiagramStore = defineStore("diagram", {
     model: undefined as go.Model | undefined,
     nodes: undefined as go.Iterator<go.Node> | undefined,
     elements: [] as Array<RectangleImage>,
+    graphConfig: "",
   }),
 });
