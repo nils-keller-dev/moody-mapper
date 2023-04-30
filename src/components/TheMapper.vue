@@ -4,7 +4,14 @@
       <BaseButton
         tooltip="Import"
         icon="fa-file-lines"
-        @click="onClickImport"
+        @click="fileInput?.click()"
+      />
+      <input
+        class="hidden"
+        ref="fileInput"
+        type="file"
+        @change="onClickImport"
+        accept="application/JSON"
       />
       <div class="h-auto border-l-2 border-dashed border-black"></div>
       <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
@@ -25,7 +32,11 @@ import { storeToRefs } from "pinia";
 import BaseButton from "./BaseButton.vue";
 import GoDiagram from "./GoDiagram.vue";
 import JointDiagram from "./JointDiagram.vue";
+import { ref } from "vue";
 
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const diagramStore = useDiagramStore();
 const facesStore = useFacesStore();
 const { model, graphConfig } = storeToRefs(useDiagramStore());
 const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
@@ -33,6 +44,19 @@ const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
 // const filesStore = useFilesStore();
 
 const onClickImport = async () => {
+  if (!fileInput.value) return;
+  if (fileInput.value.files?.length === 1) {
+    const reader = new FileReader();
+    reader.onload = (event: any) => {
+      console.log(event.target.result);
+      var obj = JSON.parse(event.target.result);
+      diagramStore.graphConfig = event.target.result;
+      console.log(obj);
+    };
+    reader.readAsText(fileInput.value.files[0]);
+  }
+  fileInput.value.value = "";
+
   // TODO upload single config file
   // let dirHandle;
   // try {
