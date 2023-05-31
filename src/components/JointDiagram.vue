@@ -8,11 +8,14 @@
       :isOpen="isContextMenuOpen"
       :x="contextMenuPosition.x"
       :y="contextMenuPosition.y"
+      @click="onContextMenuClick"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
+import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
+import { ContextMenuEvent } from "@/constants/enums/ContextMenuEvent";
 import { DefaultLink } from "@/elements/DefaultLink";
 import { RectangleImage } from "@/elements/RectangleImage";
 import { useDiagramStore } from "@/stores/diagram";
@@ -156,6 +159,24 @@ const editFace = (element: joint.dia.ElementView) => {
   // const faceName = element.model.prop("name");
   // isOpen.value = true;
   // face.value = faceName;
+};
+
+const onContextMenuClick = (e: ContextMenuEvent) => {
+  isContextMenuOpen.value = false;
+  switch (e) {
+    case ContextMenuEvent.ADD:
+      addNewFace();
+      break;
+    default:
+      break;
+  }
+};
+
+const addNewFace = () => {
+  const faceName = window.prompt("Enter face name");
+  if (!faceName) return;
+  const { x, y } = contextMenuPosition.value;
+  addElement(x, y, faceName, [BLANK_FACE_32X16, BLANK_FACE_32X16]);
 };
 
 watch(() => diagramStore.graphConfig, fillFromStore);
