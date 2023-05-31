@@ -149,16 +149,19 @@ const addElement = (
     },
   });
 
+  diagramStore.elements.push(image);
+  faces.value.push({ name, images });
+
   return image.addTo(graph);
 };
 
 const editFace = (element: joint.dia.ElementView) => {
   console.log(JSON.stringify(graph.toJSON()));
 
-  // // @ts-ignore
-  // const faceName = element.model.prop("name");
-  // isOpen.value = true;
-  // face.value = faceName;
+  // @ts-ignore
+  const faceName = element.model.prop("name");
+  isOpen.value = true;
+  face.value = faceName;
 };
 
 const onContextMenuClick = (e: ContextMenuEvent) => {

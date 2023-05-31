@@ -24,7 +24,7 @@
       <canvas class="w-full" ref="pixels" />
       <canvas class="hidden" ref="imageData" />
     </div>
-    <div class="h-8" ref="coordinates" />
+    <div class="h-8">{{ coordinatesText }}</div>
     <div class="flex gap-2.5 float-left">
       <BaseButton
         tooltip="W̲ipe canvas"
@@ -58,9 +58,7 @@
 </template>
 
 <script lang="ts" setup>
-// TODO load images from base64 data
 import { useEditorStore } from "@/stores/editor";
-// import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseButton from "./BaseButton.vue";
@@ -85,20 +83,22 @@ const holdValue = ref(1);
 const holdData = ref<PixelData>([]);
 const previousPointerPosition = ref({ x: 0, y: 0 });
 const fileName = ref("");
+const coordinates = ref<{ x?: number; y?: number }>({});
 
 const pixels = ref<HTMLCanvasElement | null>(null);
 const grid = ref<HTMLCanvasElement | null>(null);
 const imageData = ref<HTMLCanvasElement | null>(null);
 const uploadInput = ref<HTMLInputElement | null>(null);
-const coordinates = ref<HTMLDivElement | null>(null);
 
 const pixelsCtx = ref<CanvasRenderingContext2D | null>();
 const gridCtx = ref<CanvasRenderingContext2D | null>();
 const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
-const faceFiles = computed(() => useFilesStore().faces[face.value]);
-const faces = computed(() =>
-  useFacesStore().faces.find((f) => f.name === face.value)
+const faces = computed(
+  () => useFacesStore().faces.find((f) => f.name === face.value)?.images || []
+);
+const coordinatesText = computed(() =>
+  coordinates.value.x ? `${coordinates.value.x}, ${coordinates.value.y}` : ""
 );
 const currentLayer = ref(0);
 const previewIntervalId = ref();
@@ -131,14 +131,28 @@ onMounted(async () => {
 
   drawGrid();
   holdData.value = getEmptyData();
-  await loadImage(await faceFiles.value[currentLayer.value].getFile());
+  await loadImageBase64(faces.value[currentLayer.value]);
 });
 
-const loadImage = async (file: File) => {
+const loadImageFile = async (file: File) => {
   const img = new Image();
   img.src = URL.createObjectURL(file);
   await img.decode();
 
+  loadImage(img);
+};
+
+const loadImageBase64 = (base64: string) => {
+  const img = new Image();
+
+  img.onload = () => {
+    loadImage(img);
+  };
+
+  img.src = base64;
+};
+
+const loadImage = (img: HTMLImageElement) => {
   const data = generateDataFromImg(img);
 
   if (data) {
@@ -175,13 +189,11 @@ const wipeHistory = () => {
   dataHistory.value = [];
   currentHistoryIndex.value = 0;
 };
-
 // HISTORY END
 
 const onMouseOut = () => {
-  if (!coordinates.value) return;
-  coordinates.value.innerHTML = "";
-  isButtonDown.value = false;
+  coordinates.value = {};
+  onPointerUp();
 };
 
 const drawGrid = () => {
@@ -260,26 +272,16 @@ const preview = () => {
 const save = () => {
   if (!imageData.value || !faces.value) return;
   fillCanvasFromData(undefined, imageDataCtx.value, 1);
-
-  faces.value.images[currentLayer.value] = imageData.value.toDataURL();
-
-  imageData.value.toBlob(async (blob) => {
-    // @ts-ignore
-    const writable = await faceFiles.value[currentLayer.value].createWritable();
-    // @ts-ignore
-    writable.write(blob);
-    writable.close();
-
-    currentSaveIndex.value = currentHistoryIndex.value;
-    emit("save");
-  });
+  faces.value[currentLayer.value] = imageData.value.toDataURL();
+  currentSaveIndex.value = currentHistoryIndex.value;
+  emit("save");
 };
 
 const upload = () => {
   if (!uploadInput.value) return;
   if (uploadInput.value.files?.length === 1) {
     const file = uploadInput.value.files[0];
-    loadImage(file);
+    loadImageFile(file);
   }
   uploadInput.value.value = "";
 };
@@ -300,8 +302,8 @@ const confirmUnsaved = () => {
 const layer = async () => {
   if (!confirmUnsaved()) return;
 
-  currentLayer.value = (currentLayer.value + 1) % faceFiles.value.length;
-  loadImage(await faceFiles.value[currentLayer.value].getFile());
+  currentLayer.value = (currentLayer.value + 1) % faces.value.length;
+  loadImageBase64(faces.value[currentLayer.value]);
 };
 
 const generateDataFromImg = (img: HTMLImageElement) => {
@@ -382,11 +384,6 @@ const onPixelClick = (event: MouseEvent | Touch) => {
   holdData.value = JSON.parse(JSON.stringify(currentData.value));
 };
 
-const setCoordinatesDisplay = (x: number, y: number) => {
-  if (!coordinates.value) return;
-  coordinates.value.innerHTML = `${x}, ${y}`;
-};
-
 const getPixelValueForPosition = (x: number) => {
   return (
     Math.ceil(
@@ -426,7 +423,7 @@ const onPointerMove = (xPos: number, yPos: number) => {
   const y = getPixelValueForPosition(yPos - rect.top);
   if (x >= IMAGE_WIDTH || y >= IMAGE_HEIGHT || x < 0 || y < 0) return;
 
-  setCoordinatesDisplay(x, y);
+  coordinates.value = { x, y };
   if (isButtonDown.value && currentData.value[x][y] !== holdValue.value) {
     drawLine(
       x,
@@ -463,18 +460,16 @@ const shortcutMap = {
 };
 
 const onKeyDown = (e: KeyboardEvent) => {
-  let funct;
-  if (e.metaKey || e.ctrlKey) {
-    funct = specialShortcutMap[e.key as keyof typeof specialShortcutMap];
-  } else {
-    funct = shortcutMap[e.key as keyof typeof shortcutMap];
-  }
+  const funct =
+    e.metaKey || e.ctrlKey
+      ? specialShortcutMap[e.key as keyof typeof specialShortcutMap]
+      : shortcutMap[e.key as keyof typeof shortcutMap];
 
-  if (funct) {
-    funct(e);
-    e.preventDefault();
-    e.stopPropagation();
-  }
+  if (!funct) return;
+
+  funct(e);
+  e.preventDefault();
+  e.stopPropagation();
 };
 
 document.addEventListener("keydown", onKeyDown);
