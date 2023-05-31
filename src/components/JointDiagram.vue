@@ -98,7 +98,9 @@ onMounted(() => {
     isContextMenuOpen.value = false;
   });
 
-  fillFromStore();
+  animationInterval.value = setInterval(switchAllFaces, 1e3);
+
+  // fillFromStore();
 });
 
 const fillFromStore = () => {
