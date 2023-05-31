@@ -1,5 +1,15 @@
 <template>
-  <div ref="paperDiv" class="border-2 border-black border-solid bg-[#228be6]" />
+  <div class="w-full h-full">
+    <div
+      ref="paperDiv"
+      class="border-2 border-black border-solid bg-[#228be6]"
+    />
+    <ContextMenu
+      :isOpen="isContextMenuOpen"
+      :x="contextMenuPosition.x"
+      :y="contextMenuPosition.y"
+    />
+  </div>
 </template>
 
 <script lang="ts" setup>
@@ -11,6 +21,7 @@ import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch } from "vue";
+import ContextMenu from "./ContextMenu.vue";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
@@ -21,6 +32,9 @@ const animationInterval = ref<number>();
 const namespace = joint.shapes;
 const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 const paper = ref();
+
+const isContextMenuOpen = ref(false);
+const contextMenuPosition = ref({ x: 0, y: 0 });
 
 const switchAllFaces = () => {
   diagramStore.elements.forEach((element) => element.nextAnimationFrame());
@@ -71,6 +85,15 @@ onMounted(() => {
   paper.value.on("blank:mouseover", paper.value.removeTools);
 
   paper.value.on("element:pointerdblclick", editFace);
+
+  paper.value.on("blank:contextmenu blank:pointerdown", (e: MouseEvent) => {
+    isContextMenuOpen.value = true;
+    contextMenuPosition.value = { x: e.clientX, y: e.clientY };
+  });
+
+  paper.value.on("blank:pointerdown", () => {
+    isContextMenuOpen.value = false;
+  });
 
   fillFromStore();
 });
