@@ -29,7 +29,7 @@ import ContextMenu from "./ContextMenu.vue";
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
 const { isOpen, face } = storeToRefs(useEditorStore());
-const diagramStore = useDiagramStore();
+const { elements, graphConfig } = storeToRefs(useDiagramStore());
 
 const animationInterval = ref<number>();
 const namespace = joint.shapes;
@@ -40,7 +40,7 @@ const isContextMenuOpen = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
 
 const switchAllFaces = () => {
-  diagramStore.elements.forEach((element) => element.nextAnimationFrame());
+  elements.value.forEach((element) => element.nextAnimationFrame());
 };
 
 const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
@@ -97,38 +97,30 @@ onMounted(() => {
   paper.value.on("blank:pointerdown", () => {
     isContextMenuOpen.value = false;
   });
-
-  animationInterval.value = setInterval(switchAllFaces, 1e3);
-
-  // fillFromStore();
 });
 
 const fillFromStore = () => {
-  if (!diagramStore.graphConfig) return;
+  if (!graphConfig.value) return;
   clearInterval(animationInterval.value);
   graph.clear();
-  // diagramStore.$reset();
 
-  // const random = (max: number = 900, step: number = 30) => {
-  //   const r = Math.random() * max;
-  //   return r - (r % step);
-  // };
+  elements.value = [];
+  faces.value = [];
 
-  // faces.value.forEach((face) => {
-  //   diagramStore.elements.push(
-  //     addElement(random(), random(), face.name, face.images)
-  //   );
-  // });
-  console.log(diagramStore.graphConfig);
-  graph.fromJSON(JSON.parse(diagramStore.graphConfig));
+  JSON.parse(graphConfig.value).cells.forEach((cell: any) => {
+    if (cell.type !== "custom.RectangleImage") return;
+
+    console.log(cell);
+    addElement(cell.position.x, cell.position.y, cell.name, cell.images);
+  });
 
   animationInterval.value = setInterval(switchAllFaces, 1e3);
 
-  const link = new DefaultLink();
+  // const link = new DefaultLink();
 
-  link.source(diagramStore.elements[0]);
-  link.target(diagramStore.elements[1]);
-  link.addTo(graph);
+  // link.source(elements.value[0]);
+  // link.target(elements.value[1]);
+  // link.addTo(graph);
 };
 
 const addElement = (
@@ -137,7 +129,7 @@ const addElement = (
   name: string,
   images: Array<string>
 ): RectangleImage => {
-  const image = new RectangleImage({
+  const element = new RectangleImage({
     name,
     images,
     position: { x, y },
@@ -151,10 +143,10 @@ const addElement = (
     },
   });
 
-  diagramStore.elements.push(image);
+  elements.value.push(element);
   faces.value.push({ name, images });
 
-  return image.addTo(graph);
+  return element.addTo(graph);
 };
 
 const editFace = (element: joint.dia.ElementView) => {
@@ -184,5 +176,5 @@ const addNewFace = () => {
   addElement(x, y, faceName, [BLANK_FACE_32X16, BLANK_FACE_32X16]);
 };
 
-watch(() => diagramStore.graphConfig, fillFromStore);
+watch(() => graphConfig.value, fillFromStore);
 </script>
