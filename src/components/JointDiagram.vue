@@ -39,10 +39,10 @@ const paper = ref();
 const isContextMenuOpen = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
 
-const computedElements = ref<RectangleImage[]>([]);
+const elements = ref<RectangleImage[]>([]);
 
 const updateElements = () => {
-  computedElements.value = graph
+  elements.value = graph
     .getElements()
     .filter(
       (element) => element.attr("type") !== "custom.RectangleImage"
@@ -50,7 +50,7 @@ const updateElements = () => {
 };
 
 const switchAllFaces = () => {
-  computedElements.value.forEach((element) => element.nextAnimationFrame());
+  elements.value.forEach((element) => element.nextAnimationFrame());
 };
 
 const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
@@ -113,30 +113,50 @@ const fillFromStore = () => {
   if (!graphConfig.value) return;
   clearInterval(animationInterval.value);
   graph.clear();
-
   faces.value = [];
 
+  const cells: Array<joint.dia.Cell> = [];
   JSON.parse(graphConfig.value).cells.forEach((cell: any) => {
-    if (cell.type !== "custom.RectangleImage") return;
-    addElement(cell.position.x, cell.position.y, cell.name, cell.images);
+    const createdCell = (() => {
+      switch (cell.type) {
+        case "custom.RectangleImage":
+          return createElement(
+            cell.position.x,
+            cell.position.y,
+            cell.name,
+            cell.images,
+            cell.id
+          );
+        case "standard.Link":
+          return new DefaultLink({
+            source: { id: cell.source.id },
+            target: { id: cell.target.id },
+          });
+        default:
+          return;
+      }
+    })() as joint.dia.Cell;
+
+    if (createdCell) cells.push(createdCell);
   });
 
+  graph.addCells(cells);
+  updateElements();
+
   animationInterval.value = setInterval(switchAllFaces, 1e3);
-
-  // const link = new DefaultLink();
-
-  // link.source(elements.value[0]);
-  // link.target(elements.value[1]);
-  // link.addTo(graph);
 };
 
-const addElement = (
+const createElement = (
   x: number,
   y: number,
   name: string,
-  images: Array<string>
+  images: Array<string>,
+  id?: string
 ): RectangleImage => {
-  const element = new RectangleImage({
+  faces.value.push({ name, images });
+
+  return new RectangleImage({
+    id,
     name,
     images,
     position: { x, y },
@@ -149,12 +169,6 @@ const addElement = (
       },
     },
   });
-
-  faces.value.push({ name, images });
-
-  element.addTo(graph);
-  updateElements();
-  return element;
 };
 
 const editFace = (el: joint.dia.ElementView) => {
@@ -180,7 +194,8 @@ const addNewFace = () => {
   const faceName = window.prompt("Enter face name");
   if (!faceName) return;
   const { x, y } = contextMenuPosition.value;
-  addElement(x, y, faceName, [BLANK_FACE_32X16, BLANK_FACE_32X16]);
+  createElement(x, y, faceName, Array(2).fill(BLANK_FACE_32X16)).addTo(graph);
+  updateElements();
 };
 
 watch(() => graphConfig.value, fillFromStore);
