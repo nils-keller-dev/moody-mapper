@@ -180,8 +180,6 @@ const createElement = (
 };
 
 const editFace = (el: joint.dia.ElementView) => {
-  console.log(JSON.stringify(graph.toJSON()));
-
   isOpen.value = true;
   // @ts-ignore
   face.value = el.model.prop("name");
