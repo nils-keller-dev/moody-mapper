@@ -21,13 +21,13 @@
 </template>
 
 <script setup lang="ts">
-// import { useMapping } from "@/composables/mapping";
 import { useDiagramStore } from "@/stores/diagram";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 import JointDiagram from "./JointDiagram.vue";
-import { useFile } from "../composables/file";
+import { useFile } from "@/composables/file";
+import { useMapping } from "@/composables/mapping";
 
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -49,12 +49,13 @@ const onClickImport = async () => {
 };
 
 const onClickSave = async () => {
+  console.log(await useMapping().generateConfigFile());
   // TODO Download files as zip (arduino files + config.json + readme)
-  useFile().generateAndDownloadZip([
-    {
-      name: "config.json",
-      contents: "testContent",
-    },
-  ]);
+  // useFile().generateAndDownloadZip([
+  //   {
+  //     name: "config.json",
+  //     contents: "testContent",
+  //   },
+  // ]);
 };
 </script>

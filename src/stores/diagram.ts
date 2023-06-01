@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 
 export const useDiagramStore = defineStore("diagram", {
   state: () => ({
-    graphConfig: {} as dia.Graph,
+    graphConfig: {} as dia.Graph, //TODO fix typing
     isConfigUploaded: false,
   }),
 });
