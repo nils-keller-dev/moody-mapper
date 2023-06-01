@@ -27,6 +27,7 @@ import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 import JointDiagram from "./JointDiagram.vue";
+import { useFile } from "../composables/file";
 
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -48,5 +49,11 @@ const onClickImport = async () => {
 
 const onClickSave = async () => {
   // TODO Download files as zip (arduino files + config.json + readme)
+  useFile().generateAndDownloadZip([
+    {
+      name: "config.json",
+      contents: "testContent",
+    },
+  ]);
 };
 </script>
