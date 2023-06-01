@@ -31,8 +31,18 @@ const { faces } = storeToRefs(useFacesStore());
 const { isOpen, face } = storeToRefs(useEditorStore());
 const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 
-const namespace = joint.shapes;
-const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
+const customNamespace = {};
+
+Object.assign(customNamespace, {
+  custom: {
+    RectangleImage,
+  },
+  standard: {
+    Link: DefaultLink,
+  },
+});
+
+const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 const paper = ref();
 
 const isContextMenuOpen = ref(false);
@@ -60,7 +70,7 @@ const toolsView = new joint.dia.ToolsView({
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
-    cellViewNamespace: namespace,
+    cellViewNamespace: customNamespace,
     el: paperDiv.value,
     width: "100%",
     height: "100%",
