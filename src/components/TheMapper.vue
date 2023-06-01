@@ -32,8 +32,8 @@ import { useMapping } from "@/composables/mapping";
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
-// const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
-//   useMapping();
+const { generateConfigFile, generateArduinoFaces } = useMapping();
+const { generateAndDownloadZip } = useFile();
 
 const onClickImport = async () => {
   if (!fileInput.value) return;
@@ -49,13 +49,22 @@ const onClickImport = async () => {
 };
 
 const onClickSave = async () => {
-  console.log(await useMapping().generateConfigFile());
-  // TODO Download files as zip (arduino files + config.json + readme)
-  // useFile().generateAndDownloadZip([
-  //   {
-  //     name: "config.json",
-  //     contents: "testContent",
-  //   },
-  // ]);
+  const arduinoFaces = await generateArduinoFaces();
+  const config = await generateConfigFile();
+
+  generateAndDownloadZip([
+    {
+      name: "faces.h",
+      contents: arduinoFaces,
+    },
+    {
+      name: "facesConfig.h",
+      contents: config,
+    },
+    {
+      name: "facesConfig.json",
+      contents: JSON.stringify(graphConfig.value, null, 2),
+    },
+  ]);
 };
 </script>

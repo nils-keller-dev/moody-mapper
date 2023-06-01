@@ -15,7 +15,7 @@ export const useFile = () => {
     });
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
-    saveAs(zipBlob, "files.zip");
+    saveAs(zipBlob, "moody.zip");
   };
 
   return { generateAndDownloadZip };
