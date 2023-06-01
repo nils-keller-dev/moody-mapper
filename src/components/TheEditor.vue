@@ -129,7 +129,7 @@ onMounted(async () => {
   imageData.value.width = IMAGE_WIDTH;
   imageData.value.height = IMAGE_HEIGHT;
 
-  fileName.value = element.value?.attr("name");
+  fileName.value = element.value?.prop("name");
 
   drawGrid();
   holdData.value = getEmptyData();
