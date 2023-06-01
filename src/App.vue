@@ -1,10 +1,7 @@
 <template>
   <TheMapper ref="mapper" />
   <GenericModal v-model="isModalOpen">
-    <TheEditor
-      @unsavedChange="hasUnsavedChanges = $event"
-      @save="onSaveEditor"
-    />
+    <TheEditor @unsavedChange="hasUnsavedChanges = $event" />
   </GenericModal>
   <GenericModal :modelValue="isMobile()" :isClosable="false">
     <p>The Moody Mapper is currently not supported on mobile devices.</p>
@@ -23,13 +20,11 @@ import GenericModal from "@/components/GenericModal.vue";
 import TheEditor from "@/components/TheEditor.vue";
 import TheMapper from "@/components/TheMapper.vue";
 import { useEditorStore } from "@/stores/editor";
-import { useFacesStore } from "@/stores/faces";
 import { isMobile } from "is-mobile";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
-const { isOpen, element } = storeToRefs(useEditorStore());
-const { faces } = storeToRefs(useFacesStore());
+const { isOpen, face } = storeToRefs(useEditorStore());
 
 const hasUnsavedChanges = ref(false);
 
@@ -44,23 +39,17 @@ const isModalOpen = computed({
       if (
         confirm("You have unsaved changes that will be lost. Proceed anyways?")
       ) {
-        isOpen.value = false;
+        closeModal();
         hasUnsavedChanges.value = false;
       }
     } else {
-      isOpen.value = false;
+      closeModal();
     }
   },
 });
 
-const onSaveEditor = () => {
-  if (!element.value) return;
-
-  element.value.prop(
-    "images",
-    faces.value.find((f) => f.name === element.value?.prop("name"))?.images
-  );
-
-  element.value = null;
+const closeModal = () => {
+  isOpen.value = false;
+  face.value = "";
 };
 </script>

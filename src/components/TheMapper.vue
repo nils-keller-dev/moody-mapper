@@ -31,16 +31,17 @@ import { useFile } from "../composables/file";
 
 const fileInput = ref<HTMLInputElement | null>(null);
 
-const { graphConfig } = storeToRefs(useDiagramStore());
+const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 // const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
 //   useMapping();
 
 const onClickImport = async () => {
   if (!fileInput.value) return;
   if (fileInput.value.files?.length === 1) {
+    isConfigUploaded.value = true;
     const reader = new FileReader();
     reader.onload = () => {
-      graphConfig.value = reader.result as string;
+      graphConfig.value = JSON.parse(reader.result as string);
     };
     reader.readAsText(fileInput.value.files[0]);
   }

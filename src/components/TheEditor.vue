@@ -64,7 +64,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseButton from "./BaseButton.vue";
 import { useFacesStore } from "@/stores/faces";
 
-const { element } = storeToRefs(useEditorStore());
+const { face } = storeToRefs(useEditorStore());
 
 type PixelData = Array<Array<number>>;
 
@@ -95,9 +95,7 @@ const gridCtx = ref<CanvasRenderingContext2D | null>();
 const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
 const faces = computed(
-  () =>
-    useFacesStore().faces.find((f) => f.name === element.value?.prop("name"))
-      ?.images || []
+  () => useFacesStore().faces.find((f) => f.name === face.value)?.images || []
 );
 const coordinatesText = computed(() =>
   coordinates.value.x ? `${coordinates.value.x}, ${coordinates.value.y}` : ""
@@ -109,7 +107,7 @@ const hasUnsavedChanges = computed(
   () => currentHistoryIndex.value !== currentSaveIndex.value
 );
 
-const emit = defineEmits(["unsavedChange", "save"]);
+const emit = defineEmits(["unsavedChange"]);
 
 watch(hasUnsavedChanges, (hasUnsavedChanges) => {
   emit("unsavedChange", hasUnsavedChanges);
@@ -129,7 +127,7 @@ onMounted(async () => {
   imageData.value.width = IMAGE_WIDTH;
   imageData.value.height = IMAGE_HEIGHT;
 
-  fileName.value = element.value?.prop("name");
+  fileName.value = face.value;
 
   drawGrid();
   holdData.value = getEmptyData();
@@ -276,7 +274,6 @@ const save = () => {
   fillCanvasFromData(undefined, imageDataCtx.value, 1);
   faces.value[currentLayer.value] = imageData.value.toDataURL();
   currentSaveIndex.value = currentHistoryIndex.value;
-  emit("save");
 };
 
 const upload = () => {
@@ -303,6 +300,7 @@ const confirmUnsaved = () => {
 
 const layer = async () => {
   if (!confirmUnsaved()) return;
+  console.log(faces.value[currentLayer.value]);
 
   currentLayer.value = (currentLayer.value + 1) % faces.value.length;
   loadImageBase64(faces.value[currentLayer.value]);

@@ -28,8 +28,8 @@ import ContextMenu from "./ContextMenu.vue";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
-const { isOpen, element } = storeToRefs(useEditorStore());
-const { graphConfig } = storeToRefs(useDiagramStore());
+const { isOpen, face } = storeToRefs(useEditorStore());
+const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 
 const namespace = joint.shapes;
 const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
@@ -40,12 +40,18 @@ const contextMenuPosition = ref({ x: 0, y: 0 });
 
 const elements = ref<RectangleImage[]>([]);
 
+const updateGraphConfig = () => {
+  graphConfig.value = graph.toJSON();
+};
+
 const updateElements = () => {
   elements.value = graph
     .getElements()
     .filter(
       (element) => element.attr("type") !== "custom.RectangleImage"
     ) as RectangleImage[];
+
+  updateGraphConfig();
 };
 
 const switchAllFaces = () => {
@@ -111,36 +117,25 @@ onMounted(() => {
 });
 
 const fillFromStore = () => {
-  if (!graphConfig.value) return;
+  if (!graphConfig.value || !isConfigUploaded.value) return;
+
+  isConfigUploaded.value = false;
   graph.clear();
   faces.value = [];
 
-  const cells: Array<joint.dia.Cell> = [];
-  JSON.parse(graphConfig.value).cells.forEach((cell: any) => {
-    const createdCell = (() => {
-      switch (cell.type) {
-        case "custom.RectangleImage":
-          return createElement(
-            cell.position.x,
-            cell.position.y,
-            cell.name,
-            cell.images,
-            cell.id
-          );
-        case "standard.Link":
-          return new DefaultLink({
-            source: { id: cell.source.id },
-            target: { id: cell.target.id },
-          });
-        default:
-          return;
-      }
-    })() as joint.dia.Cell;
+  graph.fromJSON(graphConfig.value);
 
-    if (createdCell) cells.push(createdCell);
+  //TODO fix typings
+  // @ts-ignore
+  graphConfig.value.cells.forEach((cell: any) => {
+    if (cell.type === "custom.RectangleImage") {
+      faces.value.push({
+        name: cell.name,
+        images: cell.images,
+      });
+    }
   });
 
-  graph.addCells(cells);
   updateElements();
 };
 
@@ -148,13 +143,11 @@ const createElement = (
   x: number,
   y: number,
   name: string,
-  images: Array<string>,
-  id?: string
+  images: Array<string>
 ): RectangleImage => {
   faces.value.push({ name, images });
 
   return new RectangleImage({
-    id,
     name,
     images,
     position: { x, y },
@@ -174,7 +167,7 @@ const editFace = (el: joint.dia.ElementView) => {
 
   isOpen.value = true;
   // @ts-ignore
-  element.value = el.model as RectangleImage;
+  face.value = el.model.prop("name");
 };
 
 const onContextMenuClick = (e: ContextMenuEvent) => {
@@ -189,12 +182,31 @@ const onContextMenuClick = (e: ContextMenuEvent) => {
 };
 
 const addNewFace = () => {
-  const faceName = window.prompt("Enter face name");
+  const faceName = prompt("Enter face name");
   if (!faceName) return;
   const { x, y } = contextMenuPosition.value;
   createElement(x, y, faceName, Array(2).fill(BLANK_FACE_32X16)).addTo(graph);
   updateElements();
 };
 
-watch(() => graphConfig.value, fillFromStore);
+watch(graphConfig, fillFromStore);
+
+watch(
+  faces,
+  () => {
+    if (!face.value) return;
+    graph.getElements().forEach((cell) => {
+      if (
+        cell.prop("type") === "custom.RectangleImage" &&
+        cell.prop("name") === face.value
+      ) {
+        cell.prop(
+          "images",
+          faces.value.find((f) => f.name === face.value)?.images
+        );
+      }
+    });
+  },
+  { deep: true }
+);
 </script>
