@@ -22,15 +22,13 @@
 import GenericModal from "@/components/GenericModal.vue";
 import TheEditor from "@/components/TheEditor.vue";
 import TheMapper from "@/components/TheMapper.vue";
-import { useDiagramStore } from "@/stores/diagram";
 import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import { isMobile } from "is-mobile";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
-const { isOpen, face } = storeToRefs(useEditorStore());
-const { elements } = storeToRefs(useDiagramStore());
+const { isOpen, element } = storeToRefs(useEditorStore());
 const { faces } = storeToRefs(useFacesStore());
 
 const hasUnsavedChanges = ref(false);
@@ -56,12 +54,13 @@ const isModalOpen = computed({
 });
 
 const onSaveEditor = () => {
-  const el = elements.value.find(
-    (element) => element.prop("name") === face.value
+  if (!element.value) return;
+
+  element.value.prop(
+    "images",
+    faces.value.find((f) => f.name === element.value?.prop("name"))?.images
   );
 
-  if (!el) return;
-
-  el.prop("images", faces.value.find((f) => f.name === face.value)?.images);
+  element.value = null;
 };
 </script>

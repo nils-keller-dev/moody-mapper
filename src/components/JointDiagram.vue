@@ -28,8 +28,8 @@ import ContextMenu from "./ContextMenu.vue";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const { faces } = storeToRefs(useFacesStore());
-const { isOpen, face } = storeToRefs(useEditorStore());
-const { elements, graphConfig } = storeToRefs(useDiagramStore());
+const { isOpen, element } = storeToRefs(useEditorStore());
+const { graphConfig } = storeToRefs(useDiagramStore());
 
 const animationInterval = ref<number>();
 const namespace = joint.shapes;
@@ -39,8 +39,18 @@ const paper = ref();
 const isContextMenuOpen = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
 
+const computedElements = ref<RectangleImage[]>([]);
+
+const updateElements = () => {
+  computedElements.value = graph
+    .getElements()
+    .filter(
+      (element) => element.attr("type") !== "custom.RectangleImage"
+    ) as RectangleImage[];
+};
+
 const switchAllFaces = () => {
-  elements.value.forEach((element) => element.nextAnimationFrame());
+  computedElements.value.forEach((element) => element.nextAnimationFrame());
 };
 
 const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
@@ -104,13 +114,10 @@ const fillFromStore = () => {
   clearInterval(animationInterval.value);
   graph.clear();
 
-  elements.value = [];
   faces.value = [];
 
   JSON.parse(graphConfig.value).cells.forEach((cell: any) => {
     if (cell.type !== "custom.RectangleImage") return;
-
-    console.log(cell);
     addElement(cell.position.x, cell.position.y, cell.name, cell.images);
   });
 
@@ -143,19 +150,19 @@ const addElement = (
     },
   });
 
-  elements.value.push(element);
   faces.value.push({ name, images });
 
-  return element.addTo(graph);
+  element.addTo(graph);
+  updateElements();
+  return element;
 };
 
-const editFace = (element: joint.dia.ElementView) => {
+const editFace = (el: joint.dia.ElementView) => {
   console.log(JSON.stringify(graph.toJSON()));
 
-  // @ts-ignore
-  const faceName = element.model.prop("name");
   isOpen.value = true;
-  face.value = faceName;
+  // @ts-ignore
+  element.value = el.model as RectangleImage;
 };
 
 const onContextMenuClick = (e: ContextMenuEvent) => {

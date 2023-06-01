@@ -64,7 +64,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import BaseButton from "./BaseButton.vue";
 import { useFacesStore } from "@/stores/faces";
 
-const { face } = storeToRefs(useEditorStore());
+const { element } = storeToRefs(useEditorStore());
 
 type PixelData = Array<Array<number>>;
 
@@ -95,7 +95,9 @@ const gridCtx = ref<CanvasRenderingContext2D | null>();
 const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
 const faces = computed(
-  () => useFacesStore().faces.find((f) => f.name === face.value)?.images || []
+  () =>
+    useFacesStore().faces.find((f) => f.name === element.value?.prop("name"))
+      ?.images || []
 );
 const coordinatesText = computed(() =>
   coordinates.value.x ? `${coordinates.value.x}, ${coordinates.value.y}` : ""
@@ -127,7 +129,7 @@ onMounted(async () => {
   imageData.value.width = IMAGE_WIDTH;
   imageData.value.height = IMAGE_HEIGHT;
 
-  fileName.value = face.value;
+  fileName.value = element.value?.attr("name");
 
   drawGrid();
   holdData.value = getEmptyData();
