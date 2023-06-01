@@ -4,144 +4,67 @@
       <BaseButton
         tooltip="Import"
         icon="fa-file-lines"
-        @click="onClickImport"
+        @click="fileInput?.click()"
+      />
+      <input
+        class="hidden"
+        ref="fileInput"
+        type="file"
+        @change="onClickImport"
+        accept="application/JSON"
       />
       <div class="h-auto border-l-2 border-dashed border-black"></div>
       <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
     </div>
-    <GoDiagram @facesChange="refreshNodes" />
+    <JointDiagram />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useMapping } from "@/composables/mapping";
-import type { NodeData } from "@/constants/interfaces/NodeData";
 import { useDiagramStore } from "@/stores/diagram";
-import { useFacesStore } from "@/stores/faces";
-import { useFilesStore } from "@/stores/files";
-import go from "gojs";
 import { storeToRefs } from "pinia";
+import { ref } from "vue";
 import BaseButton from "./BaseButton.vue";
-import GoDiagram from "./GoDiagram.vue";
+import JointDiagram from "./JointDiagram.vue";
+import { useFile } from "@/composables/file";
+import { useMapping } from "@/composables/mapping";
 
-const facesStore = useFacesStore();
-const { model } = storeToRefs(useDiagramStore());
-const { generateConfigFile: generateArduinoConfig, generateArduinoFaces } =
-  useMapping();
-const filesStore = useFilesStore();
+const fileInput = ref<HTMLInputElement | null>(null);
+
+const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
+const { generateConfigFile, generateArduinoFaces } = useMapping();
+const { generateAndDownloadZip } = useFile();
 
 const onClickImport = async () => {
-  let dirHandle;
-  try {
-    dirHandle = await (window as any).showDirectoryPicker();
-  } catch {
-    console.log("Please select a directory");
-    return;
+  if (!fileInput.value) return;
+  if (fileInput.value.files?.length === 1) {
+    isConfigUploaded.value = true;
+    const reader = new FileReader();
+    reader.onload = () => {
+      graphConfig.value = JSON.parse(reader.result as string);
+    };
+    reader.readAsText(fileInput.value.files[0]);
   }
-
-  await filesStore.fillStore(dirHandle);
-  await facesStore.fillFaces(filesStore.faces);
-  await importConfig();
-};
-
-const importConfig = async () => {
-  if (!filesStore.configuration) {
-    return false;
-  }
-
-  const fr = new FileReader();
-
-  fr.onload = (e) => {
-    const configData = JSON.parse(e.target?.result as string);
-
-    configData.nodeDataArray = configData.nodeDataArray.filter(
-      (node: NodeData) => filesStore.faces[node.name]
-    );
-
-    model.value = new go.GraphLinksModel(
-      configData.nodeDataArray,
-      configData.linkDataArray
-    );
-
-    loadFacesFromStore();
-  };
-
-  fr.readAsText(await filesStore.configuration.getFile());
-};
-
-const loadFacesFromStore = () => {
-  facesStore.faces.forEach((face, index) => {
-    const node = model.value?.nodeDataArray.find((n) => n.name === face.name);
-
-    model.value?.commit((d) => {
-      if (node) {
-        d.setDataProperty(node, "images", face.images);
-        d.setKeyForNodeData(node, index);
-      } else {
-        facesStore.faces.slice(index + 1).forEach((_face, i) => {
-          const currentFaceIndex = facesStore.faces.length - i - 1;
-          const node = model.value?.findNodeDataForKey(currentFaceIndex - 1);
-
-          if (node) {
-            d.setKeyForNodeData(node, currentFaceIndex);
-          }
-        });
-
-        d.addNodeData({
-          key: index,
-          images: face.images,
-          name: face.name,
-        });
-      }
-    }, `update node data for ${face.name}}`);
-  });
-};
-
-const refreshNodes = async (countChanged = false) => {
-  if (countChanged) await filesStore.loadFaces();
-
-  await facesStore.fillFaces(filesStore.faces);
-
-  loadFacesFromStore();
+  fileInput.value.value = "";
 };
 
 const onClickSave = async () => {
-  if (
-    !filesStore.arduinoConfig ||
-    !filesStore.configuration ||
-    !filesStore.arduinoFaces
-  ) {
-    window.alert("Please select a directory");
-    return;
-  }
+  const arduinoFaces = await generateArduinoFaces();
+  const config = await generateConfigFile();
 
-  writeFile(filesStore.arduinoFaces, await generateArduinoFaces());
-  writeFile(filesStore.arduinoConfig, generateArduinoConfig());
-  writeFile(filesStore.configuration, generateConfiguration());
+  generateAndDownloadZip([
+    {
+      name: "faces.h",
+      contents: arduinoFaces,
+    },
+    {
+      name: "facesConfig.h",
+      contents: config,
+    },
+    {
+      name: "facesConfig.json",
+      contents: JSON.stringify(graphConfig.value, null, 2),
+    },
+  ]);
 };
-
-const generateConfiguration = () => {
-  const data = JSON.parse((model.value as go.Model).toJson());
-  const nodeDataArray = data.nodeDataArray.map((node: NodeData) => ({
-    ...node,
-    images: undefined,
-  }));
-
-  data.nodeDataArray = nodeDataArray;
-
-  return JSON.stringify(data, null, 2);
-};
-
-const writeFile = async (
-  // eslint-disable-next-line no-undef
-  fileHandle: FileSystemFileHandle,
-  contents: string
-) => {
-  //@ts-ignore
-  const writable = await fileHandle.createWritable();
-  await writable.write(contents);
-  await writable.close();
-};
-
-defineExpose({ refreshNodes });
 </script>

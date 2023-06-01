@@ -1,10 +1,7 @@
 <template>
   <TheMapper ref="mapper" />
   <GenericModal v-model="isModalOpen">
-    <TheEditor
-      @unsavedChange="hasUnsavedChanges = $event"
-      @save="mapper?.refreshNodes()"
-    />
+    <TheEditor @unsavedChange="hasUnsavedChanges = $event" />
   </GenericModal>
   <GenericModal :modelValue="isMobile()" :isClosable="false">
     <p>The Moody Mapper is currently not supported on mobile devices.</p>
@@ -27,7 +24,8 @@ import { isMobile } from "is-mobile";
 import { storeToRefs } from "pinia";
 import { computed, ref } from "vue";
 
-const { isOpen } = storeToRefs(useEditorStore());
+const { isOpen, face } = storeToRefs(useEditorStore());
+
 const hasUnsavedChanges = ref(false);
 
 const mapper = ref<typeof TheMapper | null>(null);
@@ -41,12 +39,17 @@ const isModalOpen = computed({
       if (
         confirm("You have unsaved changes that will be lost. Proceed anyways?")
       ) {
-        isOpen.value = false;
+        closeModal();
         hasUnsavedChanges.value = false;
       }
     } else {
-      isOpen.value = false;
+      closeModal();
     }
   },
 });
+
+const closeModal = () => {
+  isOpen.value = false;
+  face.value = "";
+};
 </script>

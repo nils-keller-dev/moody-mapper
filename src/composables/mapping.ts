@@ -1,12 +1,30 @@
+import type {
+  AbstractedLink,
+  AbstractedRectangleImage,
+} from "@/constants/interfaces/AbstractedElements";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
-import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 
 export const useMapping = () => {
   const { faces } = storeToRefs(useFacesStore());
-  const { nodes } = storeToRefs(useDiagramStore());
-  const { faces: faceFiles } = storeToRefs(useFilesStore());
+  const { graphConfig } = storeToRefs(useDiagramStore());
+
+  const loadImage = (src: string): Promise<HTMLImageElement> => {
+    return new Promise(function (resolve, reject) {
+      const img = new Image();
+
+      img.onload = function () {
+        resolve(img);
+      };
+
+      img.onerror = function () {
+        reject(new Error("Failed to load image: " + src));
+      };
+
+      img.src = src;
+    });
+  };
 
   const generateArduinoFaces = async () => {
     const canvas = new OffscreenCanvas(32, 16);
@@ -15,22 +33,17 @@ export const useMapping = () => {
     });
     if (!ctx) throw new Error();
 
-    const faceKeys = Object.keys(faceFiles.value).sort();
+    const faceKeys = faces.value.map((face) => face.name).sort();
 
     const outputData = [];
 
     for (let i = 0; i < faceKeys.length; i++) {
-      const face = faceKeys[i];
-
-      const fileHandles = faceFiles.value[face].sort((a, b) =>
-        b.name.localeCompare(a.name)
-      );
+      const face =
+        faces.value.find((item) => item.name === faceKeys[i])?.images || [];
 
       const faceData = [];
-      for (let j = 0; j < fileHandles.length; j++) {
-        const fileHandle = fileHandles[j];
-        const file = await fileHandle.getFile();
-        const img = await createImageBitmap(file);
+      for (let j = 0; j < face.length; j++) {
+        const img = await loadImage(face[j]);
 
         ctx.drawImage(img, 0, 0);
         const pixelData = ctx.getImageData(
@@ -101,19 +114,29 @@ ${fileMappings}};\n`;
     );
   };
 
+  const getElementNameById = (id: string) => {
+    return (
+      graphConfig.value.cells.find(
+        (cell) => cell.id === id
+      ) as AbstractedRectangleImage
+    ).name;
+  };
+
   const generateMappings = () => {
     const mappings = {};
 
-    nodes.value?.each((node) => {
-      const iterator = node.findLinksOutOf();
-      while (iterator.next()) {
-        const item = iterator.value;
-        addMapping(mappings, item.data.from, faces.value[item.data.to]);
+    (
+      graphConfig.value.cells.filter(
+        (cell) => cell.type === "standard.Link"
+      ) as AbstractedLink[]
+    ).forEach((link) => {
+      const from = getElementNameById(link.source.id);
+      const to = getElementNameById(link.target.id);
 
-        if (item.data.isBiDirectional) {
-          addMapping(mappings, item.data.to, faces.value[item.data.from]);
-        }
-      }
+      const target = faces.value.find((face) => face.name === to)?.name;
+      if (!target) return;
+
+      addMapping(mappings, from, target);
     });
 
     return mappings;
@@ -121,14 +144,11 @@ ${fileMappings}};\n`;
 
   const addMapping = (
     map: Record<string, string[]>,
-    key: number,
-    mapping: {
-      name: string;
-      images: string[];
-    }
+    face: string,
+    target: string
   ) => {
-    if (!map[key]) map[key] = [];
-    map[key].push(mapping.name.toUpperCase());
+    if (!map[face]) map[face] = [];
+    map[face].push(target.toUpperCase());
   };
 
   const generateFileMappings = (
@@ -138,18 +158,18 @@ ${fileMappings}};\n`;
     const fullMappings: Record<string, string[]> = {};
 
     Object.keys(mappings).forEach((key) => {
-      fullMappings[key] = mappings[key].concat(
-        Array(max - mappings[key].length).fill("INVALID_FACE")
-      );
+      fullMappings[key] = mappings[key]
+        .sort()
+        .concat(Array(max - mappings[key].length).fill("INVALID_FACE"));
     });
 
     let fileMappings = "";
 
     faces.value.forEach((face, index) => {
-      if (!fullMappings[index]) {
-        fullMappings[index] = Array(max).fill("INVALID_FACE");
+      if (!fullMappings[face.name]) {
+        fullMappings[face.name] = Array(max).fill("INVALID_FACE");
       }
-      fileMappings += `  {${fullMappings[index].join(", ")}}`;
+      fileMappings += `  {${fullMappings[face.name].join(", ")}}`;
       if (index !== faces.value.length - 1) fileMappings += ",";
       fileMappings += ` //${face.name.toUpperCase()}\n`;
     });
