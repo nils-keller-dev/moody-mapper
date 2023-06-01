@@ -31,7 +31,6 @@ const { faces } = storeToRefs(useFacesStore());
 const { isOpen, element } = storeToRefs(useEditorStore());
 const { graphConfig } = storeToRefs(useDiagramStore());
 
-const animationInterval = ref<number>();
 const namespace = joint.shapes;
 const graph = new joint.dia.Graph({}, { cellNamespace: namespace });
 const paper = ref();
@@ -107,11 +106,12 @@ onMounted(() => {
   paper.value.on("blank:pointerdown", () => {
     isContextMenuOpen.value = false;
   });
+
+  setInterval(switchAllFaces, 1e3);
 });
 
 const fillFromStore = () => {
   if (!graphConfig.value) return;
-  clearInterval(animationInterval.value);
   graph.clear();
   faces.value = [];
 
@@ -142,8 +142,6 @@ const fillFromStore = () => {
 
   graph.addCells(cells);
   updateElements();
-
-  animationInterval.value = setInterval(switchAllFaces, 1e3);
 };
 
 const createElement = (
