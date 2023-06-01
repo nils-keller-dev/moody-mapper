@@ -40,20 +40,6 @@ const contextMenuPosition = ref({ x: 0, y: 0 });
 
 const elements = ref<RectangleImage[]>([]);
 
-const updateGraphConfig = () => {
-  graphConfig.value = graph.toJSON();
-};
-
-const updateElements = () => {
-  elements.value = graph
-    .getElements()
-    .filter(
-      (element) => element.attr("type") !== "custom.RectangleImage"
-    ) as RectangleImage[];
-
-  updateGraphConfig();
-};
-
 const switchAllFaces = () => {
   elements.value.forEach((element) => element.nextAnimationFrame());
 };
@@ -61,6 +47,11 @@ const switchAllFaces = () => {
 const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
 const removeButton = new joint.linkTools.Remove({
   distance: 8,
+  action: (_, linkView: joint.dia.LinkView) => {
+    // @ts-ignore
+    linkView.model.remove();
+    updateGraphConfig();
+  },
 });
 
 const toolsView = new joint.dia.ToolsView({
@@ -104,7 +95,7 @@ onMounted(() => {
 
   paper.value.on("element:pointerdblclick", editFace);
 
-  paper.value.on("blank:contextmenu blank:pointerdown", (e: MouseEvent) => {
+  paper.value.on("blank:contextmenu", (e: MouseEvent) => {
     isContextMenuOpen.value = true;
     contextMenuPosition.value = { x: e.clientX, y: e.clientY };
   });
@@ -113,10 +104,12 @@ onMounted(() => {
     isContextMenuOpen.value = false;
   });
 
+  paper.value.on("link:connect link:disconnect", updateGraphConfig);
+
   setInterval(switchAllFaces, 1e3);
 });
 
-const fillFromStore = () => {
+const onGraphConfigChange = () => {
   if (!graphConfig.value || !isConfigUploaded.value) return;
 
   isConfigUploaded.value = false;
@@ -137,6 +130,22 @@ const fillFromStore = () => {
   });
 
   updateElements();
+};
+
+watch(graphConfig, onGraphConfigChange);
+
+const updateGraphConfig = () => {
+  graphConfig.value = graph.toJSON();
+};
+
+const updateElements = () => {
+  elements.value = graph
+    .getElements()
+    .filter(
+      (element) => element.attr("type") !== "custom.RectangleImage"
+    ) as RectangleImage[];
+
+  updateGraphConfig();
 };
 
 const createElement = (
@@ -188,8 +197,6 @@ const addNewFace = () => {
   createElement(x, y, faceName, Array(2).fill(BLANK_FACE_32X16)).addTo(graph);
   updateElements();
 };
-
-watch(graphConfig, fillFromStore);
 
 watch(
   faces,

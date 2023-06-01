@@ -300,7 +300,6 @@ const confirmUnsaved = () => {
 
 const layer = async () => {
   if (!confirmUnsaved()) return;
-  console.log(faces.value[currentLayer.value]);
 
   currentLayer.value = (currentLayer.value + 1) % faces.value.length;
   loadImageBase64(faces.value[currentLayer.value]);
