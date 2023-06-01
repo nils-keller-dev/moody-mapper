@@ -1,6 +1,9 @@
+import type {
+  AbstractedLink,
+  AbstractedRectangleImage,
+} from "@/constants/interfaces/AbstractedElements";
 import { useDiagramStore } from "@/stores/diagram";
 import { useFacesStore } from "@/stores/faces";
-// import { useFilesStore } from "@/stores/files";
 import { storeToRefs } from "pinia";
 
 export const useMapping = () => {
@@ -112,38 +115,40 @@ ${fileMappings}};\n`;
   };
 
   const getElementNameById = (id: string) => {
-    return graphConfig.value.cells.find((cell) => cell.id === id).name;
+    return (
+      graphConfig.value.cells.find(
+        (cell) => cell.id === id
+      ) as AbstractedRectangleImage
+    ).name;
   };
 
   const generateMappings = () => {
     const mappings = {};
 
-    graphConfig.value.cells
-      .filter((cell) => cell.type === "standard.Link")
-      .forEach((link) => {
-        const from = getElementNameById(link.source.id);
-        const to = getElementNameById(link.target.id);
+    (
+      graphConfig.value.cells.filter(
+        (cell) => cell.type === "standard.Link"
+      ) as AbstractedLink[]
+    ).forEach((link) => {
+      const from = getElementNameById(link.source.id);
+      const to = getElementNameById(link.target.id);
 
-        addMapping(
-          mappings,
-          from,
-          faces.value.find((face) => face.name === to)
-        );
-      });
+      const target = faces.value.find((face) => face.name === to)?.name;
+      if (!target) return;
+
+      addMapping(mappings, from, target);
+    });
 
     return mappings;
   };
 
   const addMapping = (
     map: Record<string, string[]>,
-    key: number,
-    mapping: {
-      name: string;
-      images: string[];
-    }
+    face: string,
+    target: string
   ) => {
-    if (!map[key]) map[key] = [];
-    map[key].push(mapping.name.toUpperCase());
+    if (!map[face]) map[face] = [];
+    map[face].push(target.toUpperCase());
   };
 
   const generateFileMappings = (

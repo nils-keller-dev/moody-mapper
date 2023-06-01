@@ -118,9 +118,7 @@ const onGraphConfigChange = () => {
 
   graph.fromJSON(graphConfig.value);
 
-  //TODO fix typings
-  // @ts-ignore
-  graphConfig.value.cells.forEach((cell: any) => {
+  graphConfig.value.cells.forEach((cell) => {
     if (cell.type === "custom.RectangleImage") {
       faces.value.push({
         name: cell.name,
