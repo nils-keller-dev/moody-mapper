@@ -103,9 +103,10 @@ const coordinatesText = computed(() =>
 const currentLayer = ref(0);
 const previewIntervalId = ref();
 
-const hasUnsavedChanges = computed(
-  () => currentHistoryIndex.value !== currentSaveIndex.value
-);
+const hasUnsavedChanges = computed(() => {
+  console.log(currentHistoryIndex.value, currentSaveIndex.value);
+  return currentHistoryIndex.value !== currentSaveIndex.value;
+});
 
 const emit = defineEmits(["unsavedChange"]);
 
@@ -193,7 +194,7 @@ const wipeHistory = () => {
 
 const onMouseOut = () => {
   coordinates.value = {};
-  onPointerUp();
+  if (isButtonDown.value) onPointerUp();
 };
 
 const drawGrid = () => {
