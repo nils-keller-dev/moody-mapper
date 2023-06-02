@@ -9,13 +9,17 @@
       :x="contextMenuPosition.x"
       :y="contextMenuPosition.y"
       @click="onContextMenuClick"
+      :targetType="contextMenuTargetType"
     />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
-import { ContextMenuEvent } from "@/constants/enums/ContextMenuEvent";
+import {
+  ContextMenuEvent,
+  ContextMenuTarget,
+} from "@/constants/enums/ContextMenuEvent";
 import { DefaultLink } from "@/elements/DefaultLink";
 import { RectangleImage } from "@/elements/RectangleImage";
 import { useDiagramStore } from "@/stores/diagram";
@@ -23,7 +27,7 @@ import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
-import { onMounted, ref, watch } from "vue";
+import { onMounted, ref, watch, computed } from "vue";
 import ContextMenu from "./ContextMenu.vue";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
@@ -44,6 +48,12 @@ Object.assign(customNamespace, {
 
 const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 const paper = ref();
+
+const contextMenuTargetId = ref<string | undefined>(undefined);
+const contextMenuTarget = computed(() =>
+  graphConfig.value?.cells.find((cell) => cell.id === contextMenuTargetId.value)
+);
+const contextMenuTargetType = ref<ContextMenuTarget>(ContextMenuTarget.Canvas);
 
 const isContextMenuOpen = ref(false);
 const contextMenuPosition = ref({ x: 0, y: 0 });
@@ -67,6 +77,17 @@ const removeButton = new joint.linkTools.Remove({
 const toolsView = new joint.dia.ToolsView({
   tools: [targetArrowheadTool, removeButton],
 });
+
+const openContextMenu = (
+  e: MouseEvent,
+  targetType: ContextMenuTarget,
+  id?: string
+) => {
+  contextMenuTargetId.value = id;
+  contextMenuTargetType.value = targetType;
+  contextMenuPosition.value = { x: e.clientX, y: e.clientY };
+  isContextMenuOpen.value = true;
+};
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
@@ -103,11 +124,26 @@ onMounted(() => {
 
   paper.value.on("blank:mouseover", paper.value.removeTools);
 
-  paper.value.on("element:pointerdblclick", editFace);
+  paper.value.on("element:pointerdblclick", (el: joint.dia.ElementView) => {
+    // @ts-ignore
+    editFace(el.model.prop("name"));
+  });
 
   paper.value.on("blank:contextmenu", (e: MouseEvent) => {
-    isContextMenuOpen.value = true;
-    contextMenuPosition.value = { x: e.clientX, y: e.clientY };
+    openContextMenu(e, ContextMenuTarget.Canvas);
+  });
+
+  paper.value.on(
+    "element:contextmenu",
+    (cell: RectangleImage, e: MouseEvent) => {
+      // @ts-ignore
+      openContextMenu(e, ContextMenuTarget.Node, cell.model.id);
+    }
+  );
+
+  paper.value.on("link:contextmenu", (cell: DefaultLink, e: MouseEvent) => {
+    // @ts-ignore
+    openContextMenu(e, ContextMenuTarget.Link, cell.model.id);
   });
 
   paper.value.on("blank:pointerdown", () => {
@@ -179,19 +215,27 @@ const createElement = (
   });
 };
 
-const editFace = (el: joint.dia.ElementView) => {
+const editFace = (faceName: string) => {
   isOpen.value = true;
-  // @ts-ignore
-  face.value = el.model.prop("name");
+  face.value = faceName;
 };
 
 const onContextMenuClick = (e: ContextMenuEvent) => {
   isContextMenuOpen.value = false;
+
   switch (e) {
-    case ContextMenuEvent.ADD:
+    case ContextMenuEvent.Add:
       addNewFace();
       break;
-    default:
+    case ContextMenuEvent.Edit:
+      // @ts-ignore
+      editFace(contextMenuTarget.value.name);
+      break;
+    case ContextMenuEvent.Delete:
+      // TODO
+      break;
+    case ContextMenuEvent.Rename:
+      // TODO
       break;
   }
 };
