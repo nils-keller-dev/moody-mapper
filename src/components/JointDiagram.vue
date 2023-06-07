@@ -232,7 +232,7 @@ const onContextMenuClick = (e: ContextMenuEvent) => {
       editFace(contextMenuTarget.value.name);
       break;
     case ContextMenuEvent.Delete:
-      // TODO
+      removeFace();
       break;
     case ContextMenuEvent.Rename:
       // TODO
@@ -245,6 +245,12 @@ const addNewFace = () => {
   if (!faceName) return;
   const { x, y } = contextMenuPosition.value;
   createElement(x, y, faceName, Array(2).fill(BLANK_FACE_32X16)).addTo(graph);
+  updateElements();
+};
+
+const removeFace = () => {
+  if (!contextMenuTargetId.value) return;
+  graph.getCell(contextMenuTargetId.value)?.remove();
   updateElements();
 };
 
