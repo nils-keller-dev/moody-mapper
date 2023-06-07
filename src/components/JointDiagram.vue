@@ -31,7 +31,7 @@ import { onMounted, ref, watch, computed } from "vue";
 import ContextMenu from "./ContextMenu.vue";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
-const { faces } = storeToRefs(useFacesStore());
+const facesStore = useFacesStore();
 const { isOpen, face } = storeToRefs(useEditorStore());
 const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 
@@ -49,9 +49,9 @@ Object.assign(customNamespace, {
 const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 const paper = ref();
 
-const contextMenuTargetId = ref<string | undefined>(undefined);
+const contextMenuTargetId = ref<string>("");
 const contextMenuTarget = computed(() =>
-  graphConfig.value?.cells.find((cell) => cell.id === contextMenuTargetId.value)
+  elements.value.find((element) => element.id === contextMenuTargetId.value)
 );
 const contextMenuTargetType = ref<ContextMenuTarget>(ContextMenuTarget.Canvas);
 
@@ -81,7 +81,7 @@ const toolsView = new joint.dia.ToolsView({
 const openContextMenu = (
   e: MouseEvent,
   targetType: ContextMenuTarget,
-  id?: string
+  id = ""
 ) => {
   contextMenuTargetId.value = id;
   contextMenuTargetType.value = targetType;
@@ -160,13 +160,13 @@ const onGraphConfigChange = () => {
 
   isConfigUploaded.value = false;
   graph.clear();
-  faces.value = [];
+  facesStore.faces = [];
 
   graph.fromJSON(graphConfig.value);
 
   graphConfig.value.cells.forEach((cell) => {
     if (cell.type === "custom.RectangleImage") {
-      faces.value.push({
+      facesStore.faces.push({
         name: cell.name,
         images: cell.images,
       });
@@ -198,7 +198,7 @@ const createElement = (
   name: string,
   images: Array<string>
 ): RectangleImage => {
-  faces.value.push({ name, images });
+  facesStore.faces.push({ name, images });
 
   return new RectangleImage({
     name,
@@ -228,14 +228,13 @@ const onContextMenuClick = (e: ContextMenuEvent) => {
       addNewFace();
       break;
     case ContextMenuEvent.Edit:
-      // @ts-ignore
-      editFace(contextMenuTarget.value.name);
+      editFace(contextMenuTarget.value?.prop("name"));
       break;
     case ContextMenuEvent.Delete:
-      removeFace();
+      deleteFace();
       break;
     case ContextMenuEvent.Rename:
-      // TODO
+      renameFace();
       break;
   }
 };
@@ -248,14 +247,27 @@ const addNewFace = () => {
   updateElements();
 };
 
-const removeFace = () => {
-  if (!contextMenuTargetId.value) return;
-  graph.getCell(contextMenuTargetId.value)?.remove();
+const deleteFace = () => {
+  if (!confirm("Are you sure?")) return;
+  contextMenuTarget.value?.remove();
+  facesStore.deleteFace(contextMenuTarget.value?.prop("name"));
+  updateElements();
+};
+
+const renameFace = () => {
+  const faceName = prompt("Enter new face name");
+  if (!faceName || facesStore.faces.find((f) => f.name === faceName)) {
+    alert("Face name is invalid");
+    return;
+  }
+
+  facesStore.renameFace(contextMenuTarget.value?.prop("name"), faceName);
+  contextMenuTarget.value?.rename(faceName);
   updateElements();
 };
 
 watch(
-  faces,
+  () => facesStore.faces,
   () => {
     if (!face.value) return;
     graph.getElements().forEach((cell) => {
@@ -265,7 +277,7 @@ watch(
       ) {
         cell.prop(
           "images",
-          faces.value.find((f) => f.name === face.value)?.images
+          facesStore.faces.find((f) => f.name === face.value)?.images
         );
       }
     });

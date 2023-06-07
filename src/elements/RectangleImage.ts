@@ -63,4 +63,9 @@ export class RectangleImage extends dia.Element {
 
     this.attr("image/xlinkHref", images[currentImage === images[0] ? 1 : 0]);
   }
+
+  rename(newName: string): void {
+    this.attr("label/text", newName);
+    this.prop("name", newName);
+  }
 }
