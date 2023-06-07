@@ -54,11 +54,11 @@ const onClickSave = async () => {
 
   generateAndDownloadZip([
     {
-      name: "faces.h",
+      name: "moody/faces.h",
       contents: arduinoFaces,
     },
     {
-      name: "facesConfig.h",
+      name: "moody/facesConfig.h",
       contents: config,
     },
     {
