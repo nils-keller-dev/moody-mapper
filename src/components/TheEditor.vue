@@ -104,7 +104,6 @@ const currentLayer = ref(0);
 const previewIntervalId = ref();
 
 const hasUnsavedChanges = computed(() => {
-  console.log(currentHistoryIndex.value, currentSaveIndex.value);
   return currentHistoryIndex.value !== currentSaveIndex.value;
 });
 
