@@ -146,9 +146,12 @@ onMounted(() => {
     openContextMenu(e, ContextMenuTarget.Link, cell.model.id);
   });
 
-  paper.value.on("blank:pointerdown", () => {
-    isContextMenuOpen.value = false;
-  });
+  paper.value.on(
+    "blank:pointerdown element:pointerdown link:pointerdown",
+    () => {
+      isContextMenuOpen.value = false;
+    }
+  );
 
   paper.value.on("link:connect link:disconnect", updateGraphConfig);
 
@@ -256,7 +259,8 @@ const deleteFace = () => {
 
 const renameFace = () => {
   const faceName = prompt("Enter new face name");
-  if (!faceName || facesStore.faces.find((f) => f.name === faceName)) {
+  if (!faceName) return;
+  if (facesStore.faces.find((f) => f.name === faceName)) {
     alert("Face name is invalid");
     return;
   }
