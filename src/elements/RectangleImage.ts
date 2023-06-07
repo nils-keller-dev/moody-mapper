@@ -1,4 +1,4 @@
-import { dia, shapes } from "jointjs";
+import { dia } from "jointjs";
 
 export class RectangleImage extends dia.Element {
   defaults() {
