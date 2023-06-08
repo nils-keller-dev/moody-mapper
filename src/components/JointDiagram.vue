@@ -15,6 +15,8 @@
 </template>
 
 <script lang="ts" setup>
+import { useContextMenu } from "@/composables/contextMenu";
+import { useElements } from "@/composables/elements";
 import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
 import {
   ContextMenuEvent,
@@ -27,9 +29,8 @@ import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
-import { onMounted, ref, watch, computed } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import ContextMenu from "./ContextMenu.vue";
-import { useContextMenu } from "../composables/contextMenu";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const facesStore = useFacesStore();
@@ -49,7 +50,9 @@ Object.assign(customNamespace, {
 
 const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 const paper = ref();
-const elements = ref<RectangleImage[]>([]);
+
+const { elements, updateElements, switchAllFaces, createElement } =
+  useElements();
 
 const {
   isContextMenuOpen,
@@ -63,10 +66,6 @@ const {
 const contextMenuTarget = computed(() =>
   elements.value.find((element) => element.id === contextMenuTargetId.value)
 );
-
-const switchAllFaces = () => {
-  elements.value.forEach((element) => element.nextAnimationFrame());
-};
 
 const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
 const removeButton = new joint.linkTools.Remove({
@@ -167,7 +166,7 @@ const onGraphConfigChange = () => {
     }
   });
 
-  updateElements();
+  updateDiagram();
 };
 
 watch(graphConfig, onGraphConfigChange);
@@ -176,37 +175,9 @@ const updateGraphConfig = () => {
   graphConfig.value = graph.toJSON();
 };
 
-const updateElements = () => {
-  elements.value = graph
-    .getElements()
-    .filter(
-      (element) => element.attr("type") !== "custom.RectangleImage"
-    ) as RectangleImage[];
-
+const updateDiagram = () => {
+  updateElements(graph);
   updateGraphConfig();
-};
-
-const createElement = (
-  x: number,
-  y: number,
-  name: string,
-  images: Array<string>
-): RectangleImage => {
-  facesStore.faces.push({ name, images });
-
-  return new RectangleImage({
-    name,
-    images,
-    position: { x, y },
-    attrs: {
-      label: {
-        text: name,
-      },
-      image: {
-        xlinkHref: images[0],
-      },
-    },
-  });
 };
 
 const editFace = (faceName: string) => {
@@ -238,14 +209,14 @@ const addNewFace = () => {
   if (!faceName) return;
   const { x, y } = contextMenuPosition.value;
   createElement(x, y, faceName, Array(2).fill(BLANK_FACE_32X16)).addTo(graph);
-  updateElements();
+  updateDiagram();
 };
 
 const deleteFace = () => {
   if (!confirm("Are you sure?")) return;
   contextMenuTarget.value?.remove();
   facesStore.deleteFace(contextMenuTarget.value?.prop("name"));
-  updateElements();
+  updateDiagram();
 };
 
 const renameFace = () => {
@@ -258,7 +229,7 @@ const renameFace = () => {
 
   facesStore.renameFace(contextMenuTarget.value?.prop("name"), faceName);
   contextMenuTarget.value?.rename(faceName);
-  updateElements();
+  updateDiagram();
 };
 
 watch(
