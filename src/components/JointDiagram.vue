@@ -29,6 +29,7 @@ import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
 import { onMounted, ref, watch, computed } from "vue";
 import ContextMenu from "./ContextMenu.vue";
+import { useContextMenu } from "../composables/contextMenu";
 
 const paperDiv = ref<HTMLDivElement | null>(null);
 const facesStore = useFacesStore();
@@ -48,17 +49,20 @@ Object.assign(customNamespace, {
 
 const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 const paper = ref();
+const elements = ref<RectangleImage[]>([]);
 
-const contextMenuTargetId = ref<string>("");
+const {
+  isContextMenuOpen,
+  contextMenuPosition,
+  contextMenuTargetId,
+  contextMenuTargetType,
+  openContextMenu,
+  closeContextMenu,
+} = useContextMenu();
+
 const contextMenuTarget = computed(() =>
   elements.value.find((element) => element.id === contextMenuTargetId.value)
 );
-const contextMenuTargetType = ref<ContextMenuTarget>(ContextMenuTarget.Canvas);
-
-const isContextMenuOpen = ref(false);
-const contextMenuPosition = ref({ x: 0, y: 0 });
-
-const elements = ref<RectangleImage[]>([]);
 
 const switchAllFaces = () => {
   elements.value.forEach((element) => element.nextAnimationFrame());
@@ -77,17 +81,6 @@ const removeButton = new joint.linkTools.Remove({
 const toolsView = new joint.dia.ToolsView({
   tools: [targetArrowheadTool, removeButton],
 });
-
-const openContextMenu = (
-  e: MouseEvent,
-  targetType: ContextMenuTarget,
-  id = ""
-) => {
-  contextMenuTargetId.value = id;
-  contextMenuTargetType.value = targetType;
-  contextMenuPosition.value = { x: e.clientX, y: e.clientY };
-  isContextMenuOpen.value = true;
-};
 
 onMounted(() => {
   paper.value = new joint.dia.Paper({
@@ -148,9 +141,7 @@ onMounted(() => {
 
   paper.value.on(
     "blank:pointerdown element:pointerdown link:pointerdown",
-    () => {
-      isContextMenuOpen.value = false;
-    }
+    closeContextMenu
   );
 
   paper.value.on("link:connect link:disconnect", updateGraphConfig);
@@ -224,7 +215,7 @@ const editFace = (faceName: string) => {
 };
 
 const onContextMenuClick = (e: ContextMenuEvent) => {
-  isContextMenuOpen.value = false;
+  closeContextMenu();
 
   switch (e) {
     case ContextMenuEvent.Add:
