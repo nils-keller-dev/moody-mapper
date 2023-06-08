@@ -37,16 +37,14 @@ const facesStore = useFacesStore();
 const { isOpen, face } = storeToRefs(useEditorStore());
 const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 
-const customNamespace = {};
-
-Object.assign(customNamespace, {
+const customNamespace = {
   custom: {
     RectangleImage,
   },
   standard: {
     Link: DefaultLink,
   },
-});
+};
 
 const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
 const paper = ref();
@@ -196,6 +194,7 @@ const onContextMenuClick = (e: ContextMenuEvent) => {
       editFace(contextMenuTarget.value?.prop("name"));
       break;
     case ContextMenuEvent.Delete:
+      // TODO deletion of link
       deleteFace();
       break;
     case ContextMenuEvent.Rename:
