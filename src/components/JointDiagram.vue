@@ -16,6 +16,7 @@
 
 <script lang="ts" setup>
 import { useContextMenu } from "@/composables/contextMenu";
+import { useDiagram } from "@/composables/diagram";
 import { useElements } from "@/composables/elements";
 import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
 import {
@@ -29,25 +30,12 @@ import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, watch } from "vue";
 import ContextMenu from "./ContextMenu.vue";
 
-const paperDiv = ref<HTMLDivElement | null>(null);
 const facesStore = useFacesStore();
 const { isOpen, face } = storeToRefs(useEditorStore());
 const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
-
-const customNamespace = {
-  custom: {
-    RectangleImage,
-  },
-  standard: {
-    Link: DefaultLink,
-  },
-};
-
-const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
-const paper = ref();
 
 const { elements, updateElements, switchAllFaces, createElement } =
   useElements();
@@ -61,66 +49,35 @@ const {
   closeContextMenu,
 } = useContextMenu();
 
+const { graph, paper, paperDiv, initializePaper } = useDiagram();
+
 const contextMenuTarget = computed(() =>
   elements.value.find((element) => element.id === contextMenuTargetId.value)
 );
 
-const targetArrowheadTool = new joint.linkTools.TargetArrowhead();
-const removeButton = new joint.linkTools.Remove({
-  distance: 8,
-  action: (_, linkView: joint.dia.LinkView) => {
-    // @ts-ignore
-    linkView.model.remove();
-    updateGraphConfig();
-  },
-});
-
-const toolsView = new joint.dia.ToolsView({
-  tools: [targetArrowheadTool, removeButton],
-});
+const removeLink = (_, linkView: joint.dia.LinkView) => {
+  // @ts-ignore
+  linkView.model.remove();
+  updateGraphConfig();
+};
 
 onMounted(() => {
-  paper.value = new joint.dia.Paper({
-    cellViewNamespace: customNamespace,
-    el: paperDiv.value,
-    width: "100%",
-    height: "100%",
-    model: graph,
-    gridSize: 30,
-    linkPinning: false,
-    defaultLink: () => new DefaultLink(),
-    validateConnection: (cellViewS, magnetS, cellViewT, magnetT) => {
-      if (magnetS === magnetT) return false;
+  initializePaper(removeLink);
 
-      const links = graph.getLinks();
-      // @ts-ignore
-      const sourceId = cellViewS.model.id;
-      // @ts-ignore
-      const targetId = cellViewT.model.id;
-
-      return links.every(
-        (link) =>
-          !(
-            link.getSourceElement()?.id === sourceId &&
-            link.getTargetElement()?.id === targetId
-          )
-      );
-    },
+  paper.value.on("blank:contextmenu", (e: MouseEvent) => {
+    openContextMenu(e, ContextMenuTarget.Canvas);
   });
 
-  paper.value.on("link:mouseenter", (linkView: joint.dia.LinkView) => {
-    linkView.addTools(toolsView);
-  });
+  paper.value.on(
+    "blank:pointerdown element:pointerdown link:pointerdown",
+    closeContextMenu
+  );
 
-  paper.value.on("blank:mouseover", paper.value.removeTools);
+  paper.value.on("link:connect link:disconnect", updateGraphConfig);
 
   paper.value.on("element:pointerdblclick", (el: joint.dia.ElementView) => {
     // @ts-ignore
     editFace(el.model.prop("name"));
-  });
-
-  paper.value.on("blank:contextmenu", (e: MouseEvent) => {
-    openContextMenu(e, ContextMenuTarget.Canvas);
   });
 
   paper.value.on(
@@ -135,13 +92,6 @@ onMounted(() => {
     // @ts-ignore
     openContextMenu(e, ContextMenuTarget.Link, cell.model.id);
   });
-
-  paper.value.on(
-    "blank:pointerdown element:pointerdown link:pointerdown",
-    closeContextMenu
-  );
-
-  paper.value.on("link:connect link:disconnect", updateGraphConfig);
 
   setInterval(switchAllFaces, 1e3);
 });
@@ -230,23 +180,4 @@ const renameFace = () => {
   contextMenuTarget.value?.rename(faceName);
   updateDiagram();
 };
-
-watch(
-  () => facesStore.faces,
-  () => {
-    if (!face.value) return;
-    graph.getElements().forEach((cell) => {
-      if (
-        cell.prop("type") === "custom.RectangleImage" &&
-        cell.prop("name") === face.value
-      ) {
-        cell.prop(
-          "images",
-          facesStore.faces.find((f) => f.name === face.value)?.images
-        );
-      }
-    });
-  },
-  { deep: true }
-);
 </script>
