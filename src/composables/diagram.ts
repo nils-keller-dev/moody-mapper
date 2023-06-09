@@ -1,4 +1,5 @@
 import { DefaultLink } from "@/elements/DefaultLink";
+import { useDiagramStore } from "@/stores/diagram";
 import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
@@ -6,22 +7,60 @@ import { storeToRefs } from "pinia";
 import { ref, watch } from "vue";
 import { RectangleImage } from "../elements/RectangleImage";
 
-export const useDiagram = () => {
-  const customNamespace = {
-    custom: {
-      RectangleImage,
-    },
-    standard: {
-      Link: DefaultLink,
-    },
-  };
+const customNamespace = {
+  custom: {
+    RectangleImage,
+  },
+  standard: {
+    Link: DefaultLink,
+  },
+};
 
+export const useDiagram = () => {
   const { faces } = storeToRefs(useFacesStore());
   const { face } = storeToRefs(useEditorStore());
+  const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 
   const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
   const paper = ref();
   const paperDiv = ref<HTMLDivElement | null>(null);
+
+  const elements = ref<RectangleImage[]>([]);
+
+  const updateElements = (graph: joint.dia.Graph) => {
+    elements.value = graph
+      .getElements()
+      .filter(
+        (element) => element.attr("type") !== "custom.RectangleImage"
+      ) as RectangleImage[];
+  };
+
+  const switchAllFaces = () => {
+    elements.value.forEach((element) => element.nextAnimationFrame());
+  };
+
+  const createElement = (
+    x: number,
+    y: number,
+    name: string,
+    images: Array<string>
+  ): RectangleImage => {
+    faces.value.push({ name, images });
+
+    return new RectangleImage({
+      name,
+      images,
+      position: { x, y },
+      attrs: {
+        label: {
+          text: name,
+        },
+        image: {
+          xlinkHref: images[0],
+        },
+      },
+    });
+  };
 
   const initializePaper = (
     removeLink: joint.linkTools.Button.ActionCallback
@@ -72,6 +111,36 @@ export const useDiagram = () => {
     paper.value.on("blank:mouseover", paper.value.removeTools);
   };
 
+  const updateGraphConfig = () => {
+    graphConfig.value = graph.toJSON();
+  };
+
+  const updateDiagram = () => {
+    updateElements(graph);
+    updateGraphConfig();
+  };
+
+  watch(graphConfig, () => {
+    if (!graphConfig.value || !isConfigUploaded.value) return;
+
+    isConfigUploaded.value = false;
+    graph.clear();
+    faces.value = [];
+
+    graph.fromJSON(graphConfig.value);
+
+    graphConfig.value.cells.forEach((cell) => {
+      if (cell.type === "custom.RectangleImage") {
+        faces.value.push({
+          name: cell.name,
+          images: cell.images,
+        });
+      }
+    });
+
+    updateDiagram();
+  });
+
   watch(
     faces,
     () => {
@@ -91,11 +160,16 @@ export const useDiagram = () => {
     { deep: true }
   );
 
+  setInterval(switchAllFaces, 1e3);
+
   return {
-    customNamespace,
+    elements,
     graph,
     paper,
     paperDiv,
     initializePaper,
+    createElement,
+    updateGraphConfig,
+    updateDiagram,
   };
 };

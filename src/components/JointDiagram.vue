@@ -17,7 +17,6 @@
 <script lang="ts" setup>
 import { useContextMenu } from "@/composables/contextMenu";
 import { useDiagram } from "@/composables/diagram";
-import { useElements } from "@/composables/elements";
 import { BLANK_FACE_32X16 } from "@/constants/blankFace32x16";
 import {
   ContextMenuEvent,
@@ -25,20 +24,15 @@ import {
 } from "@/constants/enums/ContextMenuEvent";
 import { DefaultLink } from "@/elements/DefaultLink";
 import { RectangleImage } from "@/elements/RectangleImage";
-import { useDiagramStore } from "@/stores/diagram";
 import { useEditorStore } from "@/stores/editor";
 import { useFacesStore } from "@/stores/faces";
 import * as joint from "jointjs";
 import { storeToRefs } from "pinia";
-import { computed, onMounted, watch } from "vue";
+import { computed, onMounted } from "vue";
 import ContextMenu from "./ContextMenu.vue";
 
 const facesStore = useFacesStore();
 const { isOpen, face } = storeToRefs(useEditorStore());
-const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
-
-const { elements, updateElements, switchAllFaces, createElement } =
-  useElements();
 
 const {
   isContextMenuOpen,
@@ -49,13 +43,22 @@ const {
   closeContextMenu,
 } = useContextMenu();
 
-const { graph, paper, paperDiv, initializePaper } = useDiagram();
+const {
+  elements,
+  graph,
+  paper,
+  paperDiv,
+  initializePaper,
+  createElement,
+  updateGraphConfig,
+  updateDiagram,
+} = useDiagram();
 
 const contextMenuTarget = computed(() =>
   elements.value.find((element) => element.id === contextMenuTargetId.value)
 );
 
-const removeLink = (_, linkView: joint.dia.LinkView) => {
+const removeLink: joint.linkTools.Button.ActionCallback = (_, linkView) => {
   // @ts-ignore
   linkView.model.remove();
   updateGraphConfig();
@@ -92,41 +95,7 @@ onMounted(() => {
     // @ts-ignore
     openContextMenu(e, ContextMenuTarget.Link, cell.model.id);
   });
-
-  setInterval(switchAllFaces, 1e3);
 });
-
-const onGraphConfigChange = () => {
-  if (!graphConfig.value || !isConfigUploaded.value) return;
-
-  isConfigUploaded.value = false;
-  graph.clear();
-  facesStore.faces = [];
-
-  graph.fromJSON(graphConfig.value);
-
-  graphConfig.value.cells.forEach((cell) => {
-    if (cell.type === "custom.RectangleImage") {
-      facesStore.faces.push({
-        name: cell.name,
-        images: cell.images,
-      });
-    }
-  });
-
-  updateDiagram();
-};
-
-watch(graphConfig, onGraphConfigChange);
-
-const updateGraphConfig = () => {
-  graphConfig.value = graph.toJSON();
-};
-
-const updateDiagram = () => {
-  updateElements(graph);
-  updateGraphConfig();
-};
 
 const editFace = (faceName: string) => {
   isOpen.value = true;
