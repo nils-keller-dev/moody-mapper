@@ -25,7 +25,7 @@
     <div class="flex gap-2.5 float-left">
       <BaseButton
         tooltip="W̲ipe canvas"
-        icon="fa-eraser"
+        icon="fa-snowplow"
         @click="wipePixelCanvas"
       />
       <BaseButton
@@ -36,10 +36,10 @@
       <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
     </div>
     <div class="flex gap-2.5 float-right">
-      <BaseButton @click="layer" tooltip="Switch L̲ayer" icon="fa-layer-group" />
+      <BaseButton @click="layer" tooltip="Switch L̲ayer" icon="fa-clone" />
       <BaseButton
         tooltip="Upload (Control+U)"
-        icon="fa-file-arrow-up"
+        icon="fa-file-image"
         @click="uploadInput?.click()"
       />
       <input
