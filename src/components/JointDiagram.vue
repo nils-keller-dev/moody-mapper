@@ -2,7 +2,7 @@
   <div class="w-full h-full">
     <div
       ref="paperDiv"
-      class="border-2 border-black border-solid bg-[#228be6]"
+      class="border-2 border-black border-solid bg-[#228be6] cursor-grab"
     />
     <ContextMenu
       :isOpen="isContextMenuOpen"

@@ -24,8 +24,37 @@ export const useDiagram = () => {
   const graph = new joint.dia.Graph({}, { cellNamespace: customNamespace });
   const paper = ref();
   const paperDiv = ref<HTMLDivElement | null>(null);
-
   const elements = ref<RectangleImage[]>([]);
+
+  const isPanning = ref(false);
+  const origin = ref({ x: 0, y: 0 });
+
+  const handleBlankPointerDown = (e: MouseEvent) => {
+    if (e.button === 0) {
+      isPanning.value = true;
+      origin.value = { x: e.clientX, y: e.clientY };
+    }
+  };
+
+  const handleBlankPointerUp = () => {
+    if (paperDiv.value) {
+      paperDiv.value.style.cursor = "grab";
+    }
+  };
+
+  const handleBlankPointerMove = (e: MouseEvent) => {
+    if (isPanning.value && paperDiv.value) {
+      paperDiv.value.style.cursor = "grabbing";
+
+      const { tx, ty } = paper.value.translate();
+      const dx = origin.value.x - e.clientX;
+      const dy = origin.value.y - e.clientY;
+
+      paper.value.translate(tx - dx, ty - dy);
+
+      origin.value = { x: e.clientX, y: e.clientY };
+    }
+  };
 
   const updateElements = (graph: joint.dia.Graph) => {
     elements.value = graph
@@ -109,6 +138,10 @@ export const useDiagram = () => {
     });
 
     paper.value.on("blank:mouseover", paper.value.removeTools);
+
+    paper.value.on("blank:pointerdown", handleBlankPointerDown);
+    paper.value.on("blank:pointerup", handleBlankPointerUp);
+    paper.value.on("blank:pointermove", handleBlankPointerMove);
   };
 
   const updateGraphConfig = () => {
