@@ -1,5 +1,5 @@
 <template>
-  <TheMapper ref="mapper" />
+  <TheMapper />
   <GenericModal v-model="isModalOpen">
     <TheEditor @unsavedChange="hasUnsavedChanges = $event" />
   </GenericModal>
@@ -27,8 +27,6 @@ import { computed, ref } from "vue";
 const { isOpen, face } = storeToRefs(useEditorStore());
 
 const hasUnsavedChanges = ref(false);
-
-const mapper = ref<typeof TheMapper | null>(null);
 
 const isModalOpen = computed({
   get() {
