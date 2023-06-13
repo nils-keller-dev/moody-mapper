@@ -2,14 +2,14 @@
   <div
     @contextmenu.prevent
     v-show="isOpen"
-    class="absolute border-2 border-solid border-black text-black bg-white cursor-pointer"
+    class="py-1 absolute border border-solid rounded shadow-md border-neutral-500 text-black bg-white cursor-pointer overflow-hidden"
     :style="style"
   >
     <div
       v-for="event in contextMenuEvents"
       :key="event"
       @click="emit('click', event)"
-      class="p-2 hover:bg-[#eee]"
+      class="px-4 py-1 hover:bg-[#228be6] hover:text-white"
     >
       {{ event }}
     </div>

@@ -28,6 +28,6 @@ const emit = defineEmits(["click"]);
 const style = computed(() => {
   return props.type === ButtonType.Default
     ? "bg-[#4287f5] text-white rounded"
-    : "bg-white text-[#161616] hover:bg-[#ddd]";
+    : "bg-white text-[#161616] hover:bg-neutral-200";
 });
 </script>

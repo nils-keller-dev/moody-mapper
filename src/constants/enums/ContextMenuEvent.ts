@@ -5,17 +5,17 @@ export enum ContextMenuTarget {
 }
 
 export enum ContextMenuEvent {
-  Delete = "delete",
-  Edit = "edit",
-  Rename = "rename",
-  Add = "add",
+  Delete = "Delete",
+  Edit = "Edit",
+  Rename = "Rename",
+  Add = "Add",
 }
 
 export const contextMenuEventMap = {
   [ContextMenuTarget.Node]: [
-    ContextMenuEvent.Delete,
     ContextMenuEvent.Edit,
     ContextMenuEvent.Rename,
+    ContextMenuEvent.Delete,
   ],
   [ContextMenuTarget.Canvas]: [ContextMenuEvent.Add],
   [ContextMenuTarget.Link]: [ContextMenuEvent.Delete],

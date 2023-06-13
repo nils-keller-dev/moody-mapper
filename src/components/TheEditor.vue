@@ -1,11 +1,8 @@
 <template>
   <div class="text-white">
-    <input
-      v-model="fileName"
-      @keydown.stop
-      disabled
-      class="mb-2.5 bg-[#fff1] rounded b-0 w-full text-center"
-    />
+    <div class="text-base bg-[#fff1] rounded mb-2.5 w-full text-center">
+      {{ fileName }}
+    </div>
     <div class="relative">
       <canvas
         class="w-full absolute"
