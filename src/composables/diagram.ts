@@ -26,12 +26,10 @@ export const useDiagram = () => {
   const paperDiv = ref<HTMLDivElement | null>(null);
   const elements = ref<RectangleImage[]>([]);
 
-  const isPanning = ref(false);
   const origin = ref({ x: 0, y: 0 });
 
   const handleBlankPointerDown = (e: MouseEvent) => {
     if (e.button === 0) {
-      isPanning.value = true;
       origin.value = { x: e.clientX, y: e.clientY };
     }
   };
@@ -43,7 +41,7 @@ export const useDiagram = () => {
   };
 
   const handleBlankPointerMove = (e: MouseEvent) => {
-    if (isPanning.value && paperDiv.value) {
+    if (paperDiv.value) {
       paperDiv.value.style.cursor = "grabbing";
 
       const { tx, ty } = paper.value.translate();
