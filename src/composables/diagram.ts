@@ -16,6 +16,9 @@ const customNamespace = {
   },
 };
 
+const MIN_SCALE = 0.4;
+const MAX_SCALE = 2;
+
 export const useDiagram = () => {
   const { faces } = storeToRefs(useFacesStore());
   const { face } = storeToRefs(useEditorStore());
@@ -27,21 +30,24 @@ export const useDiagram = () => {
   const elements = ref<RectangleImage[]>([]);
 
   const origin = ref({ x: 0, y: 0 });
+  const isPanning = ref(false);
 
   const handleBlankPointerDown = (e: MouseEvent) => {
     if (e.button === 0) {
+      isPanning.value = true;
       origin.value = { x: e.clientX, y: e.clientY };
     }
   };
 
   const handleBlankPointerUp = () => {
     if (paperDiv.value) {
+      isPanning.value = false;
       paperDiv.value.style.cursor = "grab";
     }
   };
 
   const handleBlankPointerMove = (e: MouseEvent) => {
-    if (paperDiv.value) {
+    if (paperDiv.value && isPanning.value) {
       paperDiv.value.style.cursor = "grabbing";
 
       const { tx, ty } = paper.value.translate();
@@ -51,6 +57,52 @@ export const useDiagram = () => {
       paper.value.translate(tx - dx, ty - dy);
 
       origin.value = { x: e.clientX, y: e.clientY };
+    }
+  };
+
+  // magic
+  // https://github.com/clientIO/joint/issues/1027#issuecomment-454683309
+  const scaleToPoint = (nextScale: number, x: number, y: number) => {
+    if (nextScale >= MIN_SCALE && nextScale <= MAX_SCALE) {
+      const currentScale = paper.value.scale().sx;
+
+      const beta = currentScale / nextScale;
+
+      const ax = x - x * beta;
+      const ay = y - y * beta;
+
+      const translate = paper.value.translate();
+
+      const nextTx = translate.tx - ax * nextScale;
+      const nextTy = translate.ty - ay * nextScale;
+
+      paper.value.translate(nextTx, nextTy);
+
+      const ctm = paper.value.matrix();
+
+      ctm.a = nextScale;
+      ctm.d = nextScale;
+
+      paper.value.matrix(ctm);
+    }
+  };
+
+  const handleCanvasMouseWheel = (
+    e: any,
+    x: number,
+    y: number,
+    delta: number
+  ) => {
+    const evt = e.originalEvent as WheelEvent;
+
+    if (e.ctrlKey || e.metaKey) {
+      scaleToPoint(paper.value.scale().sx + delta * 0.1, x, y);
+    } else {
+      const { tx, ty } = paper.value.translate();
+      const dx = evt.deltaX;
+      const dy = evt.deltaY;
+
+      paper.value.translate(tx - dx, ty - dy);
     }
   };
 
@@ -140,6 +192,14 @@ export const useDiagram = () => {
     paper.value.on("blank:pointerdown", handleBlankPointerDown);
     paper.value.on("blank:pointerup", handleBlankPointerUp);
     paper.value.on("blank:pointermove", handleBlankPointerMove);
+
+    paper.value.on("blank:mousewheel ", handleCanvasMouseWheel);
+    paper.value.on(
+      "cell:mousewheel ",
+      (_: any, e: any, x: number, y: number, d: number) => {
+        handleCanvasMouseWheel(e, x, y, d);
+      }
+    );
   };
 
   const updateGraphConfig = () => {
