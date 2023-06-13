@@ -16,7 +16,7 @@ const props = withDefaults(
   defineProps<{
     tooltip: string;
     icon: string;
-    type: ButtonType;
+    type?: ButtonType;
   }>(),
   {
     type: ButtonType.Default,
