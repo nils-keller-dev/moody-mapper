@@ -6,8 +6,6 @@ import {
   faEraser,
   faEye,
   faFileArrowUp,
-  faFileLines,
-  faImages,
   faInfinity,
   faLayerGroup,
   faSave,
@@ -18,16 +16,14 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 
 library.add(
-  faFileLines,
-  faImages,
-  faInfinity,
-  faSave,
-  faEraser,
   faArrowsLeftRightToLine,
+  faEraser,
   faEye,
   faFileArrowUp,
-  faXmark,
-  faLayerGroup
+  faInfinity,
+  faLayerGroup,
+  faSave,
+  faXmark
 );
 
 const pinia = createPinia();

@@ -1,9 +1,10 @@
 <template>
   <div class="flex flex-col items-center gap-2.5 h-full">
-    <div class="flex gap-2.5">
+    <MenuOverlay class="top-5 left-5">
       <BaseButton
+        :type="ButtonType.Overlay"
         tooltip="Import"
-        icon="fa-file-lines"
+        icon="fa-file-arrow-up"
         @click="fileInput?.click()"
       />
       <input
@@ -13,21 +14,27 @@
         @change="onClickImport"
         accept="application/JSON"
       />
-      <div class="h-auto border-l-2 border-dashed border-black"></div>
-      <BaseButton tooltip="Save" icon="fa-save" @click="onClickSave" />
-    </div>
+      <BaseButton
+        :type="ButtonType.Overlay"
+        tooltip="Save"
+        icon="fa-save"
+        @click="onClickSave"
+      />
+    </MenuOverlay>
     <JointDiagram />
   </div>
 </template>
 
 <script setup lang="ts">
+import { useFile } from "@/composables/file";
+import { useMapping } from "@/composables/mapping";
+import { ButtonType } from "@/constants/enums/ButtonType";
 import { useDiagramStore } from "@/stores/diagram";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import BaseButton from "./BaseButton.vue";
 import JointDiagram from "./JointDiagram.vue";
-import { useFile } from "@/composables/file";
-import { useMapping } from "@/composables/mapping";
+import MenuOverlay from "./MenuOverlay.vue";
 
 const fileInput = ref<HTMLInputElement | null>(null);
 

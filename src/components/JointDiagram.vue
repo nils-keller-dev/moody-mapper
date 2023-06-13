@@ -1,9 +1,6 @@
 <template>
   <div class="w-full h-full">
-    <div
-      ref="paperDiv"
-      class="border-2 border-black border-solid bg-[#228be6] cursor-grab"
-    />
+    <div ref="paperDiv" class="bg-[#228be6] cursor-grab" />
     <ContextMenu
       :isOpen="isContextMenuOpen"
       :x="contextMenuPosition.x"
