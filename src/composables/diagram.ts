@@ -46,15 +46,19 @@ export const useDiagram = () => {
     }
   };
 
+  const translateCanvas = (x: number, y: number) => {
+    const { tx, ty } = paper.value.translate();
+    paper.value.translate(tx - x, ty - y);
+  };
+
   const handleBlankPointerMove = (e: MouseEvent) => {
     if (paperDiv.value && isPanning.value) {
       paperDiv.value.style.cursor = "grabbing";
 
-      const { tx, ty } = paper.value.translate();
       const dx = origin.value.x - e.clientX;
       const dy = origin.value.y - e.clientY;
 
-      paper.value.translate(tx - dx, ty - dy);
+      translateCanvas(dx, dy);
 
       origin.value = { x: e.clientX, y: e.clientY };
     }
@@ -98,11 +102,7 @@ export const useDiagram = () => {
     if (e.ctrlKey || e.metaKey) {
       scaleToPoint(paper.value.scale().sx + delta * 0.1, x, y);
     } else {
-      const { tx, ty } = paper.value.translate();
-      const dx = evt.deltaX;
-      const dy = evt.deltaY;
-
-      paper.value.translate(tx - dx, ty - dy);
+      translateCanvas(evt.deltaX, evt.deltaY);
     }
   };
 
