@@ -22,9 +22,12 @@ import TheMapper from "@/components/TheMapper.vue";
 import { useEditorStore } from "@/stores/editor";
 import { isMobile } from "is-mobile";
 import { storeToRefs } from "pinia";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { getFacesConfig } from "./services/config";
+import { useDiagramStore } from "./stores/diagram";
 
 const { isOpen, face } = storeToRefs(useEditorStore());
+const { graphConfig, isConfigUploaded } = storeToRefs(useDiagramStore());
 
 const hasUnsavedChanges = ref(false);
 
@@ -44,6 +47,11 @@ const isModalOpen = computed({
       closeModal();
     }
   },
+});
+
+onMounted(async () => {
+  graphConfig.value = await getFacesConfig();
+  isConfigUploaded.value = true;
 });
 
 const closeModal = () => {

@@ -1,12 +1,5 @@
-import type {
-  AbstractedLink,
-  AbstractedRectangleImage,
-} from "@/constants/interfaces/AbstractedElements";
+import type { GraphConfig } from "@/constants/interfaces/GraphConfig";
 import { defineStore } from "pinia";
-
-interface GraphConfig {
-  cells: AbstractedRectangleImage[] | AbstractedLink[];
-}
 
 export const useDiagramStore = defineStore("diagram", {
   state: () => ({
