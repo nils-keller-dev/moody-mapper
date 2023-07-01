@@ -22,34 +22,49 @@
       <canvas class="hidden" ref="imageData" />
     </div>
     <div class="h-8">{{ coordinatesText }}</div>
-    <div class="flex gap-2.5 float-left">
-      <BaseButton
-        tooltip="W̲ipe canvas"
-        icon="fa-snowplow"
-        @click="wipePixelCanvas"
-      />
-      <BaseButton
-        tooltip="M̲irror from left to right"
-        icon="fa-arrows-left-right-to-line"
-        @click="mirror"
-      />
-      <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
-    </div>
-    <div class="flex gap-2.5 float-right">
-      <BaseButton @click="layer" tooltip="Switch L̲ayer" icon="fa-clone" />
-      <BaseButton
-        tooltip="Upload (Control+U)"
-        icon="fa-file-image"
-        @click="uploadInput?.click()"
-      />
-      <input
-        class="hidden"
-        ref="uploadInput"
-        type="file"
-        @change="upload"
-        accept="image/png, image/jpeg"
-      />
-      <BaseButton @click="save" tooltip="Save (Control+S)" icon="fa-save" />
+    <div class="flex justify-between">
+      <div class="flex gap-2.5">
+        <BaseButton
+          tooltip="W̲ipe canvas"
+          icon="fa-snowplow"
+          @click="wipePixelCanvas"
+        />
+        <BaseButton
+          tooltip="M̲irror from left to right"
+          icon="fa-arrows-left-right-to-line"
+          @click="mirror"
+        />
+        <BaseButton tooltip="P̲review" icon="fa-eye" @click="preview" />
+      </div>
+      <div class="flex gap-2.5">
+        <BaseButton
+          tooltip="Undo"
+          icon="fa-rotate-left"
+          @click="historyPrevious"
+        />
+        <BaseButton
+          tooltip="Redo"
+          icon="fa-rotate-right"
+          @click="historyNext"
+        />
+      </div>
+      <div class="flex gap-2.5 items-center">
+        <div class="w-4">{{ layerText }}</div>
+        <BaseButton @click="layer" tooltip="Switch L̲ayer" icon="fa-clone" />
+        <BaseButton
+          tooltip="Upload (Control+U)"
+          icon="fa-file-image"
+          @click="uploadInput?.click()"
+        />
+        <input
+          class="hidden"
+          ref="uploadInput"
+          type="file"
+          @change="upload"
+          accept="image/png, image/jpeg"
+        />
+        <BaseButton @click="save" tooltip="Save (Control+S)" icon="fa-save" />
+      </div>
     </div>
   </div>
 </template>
@@ -95,8 +110,11 @@ const faces = computed(
   () => useFacesStore().faces.find((f) => f.name === face.value)?.images || []
 );
 const coordinatesText = computed(() =>
-  coordinates.value.x ? `${coordinates.value.x}, ${coordinates.value.y}` : ""
+  coordinates.value.x !== undefined
+    ? `${coordinates.value.x}, ${coordinates.value.y}`
+    : ""
 );
+const layerText = computed(() => `${currentLayer.value + 1}/2 `);
 const currentLayer = ref(0);
 const previewIntervalId = ref();
 

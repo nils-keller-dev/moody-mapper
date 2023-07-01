@@ -9,6 +9,8 @@ import {
   faFileArrowUp,
   faFileImage,
   faInfinity,
+  faRotateLeft,
+  faRotateRight,
   faSave,
   faSnowplow,
   faXmark,
@@ -25,6 +27,8 @@ library.add(
   faFileArrowUp,
   faFileImage,
   faInfinity,
+  faRotateLeft,
+  faRotateRight,
   faSave,
   faSnowplow,
   faXmark
