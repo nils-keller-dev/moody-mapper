@@ -4,8 +4,10 @@
       {{ fileName }}
     </div>
     <div class="relative">
+      <canvas class="w-full absolute top-0 opacity-50" ref="backgroundLayer" />
+      <canvas class="w-full relative" ref="pixels" />
       <canvas
-        class="w-full absolute"
+        class="w-full absolute top-0"
         ref="grid"
         @contextmenu.prevent
         @mousedown="onPixelClick"
@@ -18,7 +20,6 @@
           onPointerMove($event.touches[0].clientX, $event.touches[0].clientY)
         "
       />
-      <canvas class="w-full" ref="pixels" />
       <canvas class="hidden" ref="imageData" />
     </div>
     <div class="h-8">{{ coordinatesText }}</div>
@@ -98,11 +99,13 @@ const fileName = ref("");
 const coordinates = ref<{ x?: number; y?: number }>({});
 
 const pixels = ref<HTMLCanvasElement | null>(null);
+const backgroundLayer = ref<HTMLCanvasElement | null>(null);
 const grid = ref<HTMLCanvasElement | null>(null);
 const imageData = ref<HTMLCanvasElement | null>(null);
 const uploadInput = ref<HTMLInputElement | null>(null);
 
 const pixelsCtx = ref<CanvasRenderingContext2D | null>();
+const backgroundLayerCtx = ref<CanvasRenderingContext2D | null>();
 const gridCtx = ref<CanvasRenderingContext2D | null>();
 const imageDataCtx = ref<CanvasRenderingContext2D | null>();
 
@@ -129,16 +132,32 @@ watch(hasUnsavedChanges, (hasUnsavedChanges) => {
 });
 
 onMounted(async () => {
-  if (!pixels.value || !grid.value || !imageData.value) return;
+  if (
+    !pixels.value ||
+    !grid.value ||
+    !imageData.value ||
+    !backgroundLayer.value
+  ) {
+    return;
+  }
 
   pixelsCtx.value = pixels.value.getContext("2d");
+  backgroundLayerCtx.value = backgroundLayer.value.getContext("2d");
   gridCtx.value = grid.value.getContext("2d");
   imageDataCtx.value = imageData.value.getContext("2d", {
     willReadFrequently: true,
   });
 
-  pixels.value.width = grid.value.width = CANVAS_WIDTH;
-  pixels.value.height = grid.value.height = CANVAS_HEIGHT;
+  pixels.value.width =
+    backgroundLayer.value.width =
+    grid.value.width =
+      CANVAS_WIDTH;
+
+  pixels.value.height =
+    backgroundLayer.value.height =
+    grid.value.height =
+      CANVAS_HEIGHT;
+
   imageData.value.width = IMAGE_WIDTH;
   imageData.value.height = IMAGE_HEIGHT;
 
@@ -147,6 +166,10 @@ onMounted(async () => {
   drawGrid();
   holdData.value = getEmptyData();
   await loadImageBase64(faces.value[currentLayer.value]);
+
+  if (!backgroundLayerCtx.value) return;
+  backgroundLayerCtx.value.imageSmoothingEnabled = false;
+  await loadBackgroundLayer();
 });
 
 const loadImageFile = async (file: File) => {
@@ -176,7 +199,18 @@ const loadImage = (img: HTMLImageElement) => {
   }
 };
 
-// HISTORY
+const loadBackgroundLayer = async () => {
+  const nextLayerIndex = (currentLayer.value + 1) % faces.value.length;
+  backgroundLayerCtx.value?.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  const img = new Image();
+  img.onload = () => {
+    backgroundLayerCtx.value?.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  };
+  img.src = faces.value[nextLayerIndex];
+};
+
+// #region history
 const currentData = computed(
   () => dataHistory.value[currentHistoryIndex.value]
 );
@@ -204,7 +238,7 @@ const wipeHistory = () => {
   dataHistory.value = [];
   currentHistoryIndex.value = 0;
 };
-// HISTORY END
+// #endregion
 
 const onMouseOut = () => {
   coordinates.value = {};
@@ -318,6 +352,8 @@ const layer = async () => {
 
   currentLayer.value = (currentLayer.value + 1) % faces.value.length;
   loadImageBase64(faces.value[currentLayer.value]);
+
+  await loadBackgroundLayer();
 };
 
 const generateDataFromImg = (img: HTMLImageElement) => {
