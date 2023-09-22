@@ -182,6 +182,13 @@ const loadBackgroundLayer = () => {
 
   backgroundLayerData.value = generateDataFromImg(img) || getEmptyData();
 
+  backgroundLayerCtx.value.clearRect(
+    0,
+    0,
+    backgroundLayerCtx.value.canvas.width,
+    backgroundLayerCtx.value.canvas.height
+  );
+
   fillCanvasFromData(
     backgroundLayerData.value,
     backgroundLayerCtx.value,
@@ -315,10 +322,11 @@ const mirror = () => {
 const preview = () => {
   if (!confirmUnsaved()) return;
 
-  if (!grid.value || !pixels.value) return;
+  if (!grid.value || !pixels.value || !backgroundLayer.value) return;
 
   grid.value.classList.toggle("hidden");
   pixels.value.classList.toggle("invert");
+  backgroundLayer.value.classList.toggle("hidden");
 
   previewIntervalId.value = previewIntervalId.value
     ? clearInterval(previewIntervalId.value)
@@ -424,12 +432,11 @@ const fillPixel = (
   }
 
   if (value) {
-    context.fillStyle = "black";
-    context.globalAlpha = isBackgroundLayer ? 0.5 : 1;
+    context.fillStyle = isBackgroundLayer ? "rgba(0, 0, 0, 0.5)" : "black";
   } else {
-    context.fillStyle = "white";
-    context.globalAlpha = isBackgroundLayer ? 0 : 1;
+    context.fillStyle = isBackgroundLayer ? "rgba(0, 0, 0, 0)" : "white";
   }
+
   context.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
 };
 
