@@ -4,8 +4,8 @@
       {{ fileName }}
     </div>
     <div class="relative">
+      <canvas class="w-full" ref="pixels" />
       <canvas class="w-full absolute top-0 opacity-50" ref="backgroundLayer" />
-      <canvas class="w-full relative" ref="pixels" />
       <canvas
         class="w-full absolute top-0"
         ref="grid"
@@ -97,6 +97,7 @@ const holdData = ref<PixelData>([]);
 const previousPointerPosition = ref({ x: 0, y: 0 });
 const fileName = ref("");
 const coordinates = ref<{ x?: number; y?: number }>({});
+const backgroundLayerData = ref<PixelData>([]);
 
 const pixels = ref<HTMLCanvasElement | null>(null);
 const backgroundLayer = ref<HTMLCanvasElement | null>(null);
@@ -172,6 +173,23 @@ onMounted(async () => {
   await loadBackgroundLayer();
 });
 
+const loadBackgroundLayer = () => {
+  if (!backgroundLayerCtx.value) return;
+
+  const nextLayerIndex = (currentLayer.value + 1) % faces.value.length;
+  const img = new Image();
+  img.src = faces.value[nextLayerIndex];
+
+  backgroundLayerData.value = generateDataFromImg(img) || getEmptyData();
+
+  fillCanvasFromData(
+    backgroundLayerData.value,
+    backgroundLayerCtx.value,
+    undefined,
+    true
+  );
+};
+
 const loadImageFile = async (file: File) => {
   const img = new Image();
   img.src = URL.createObjectURL(file);
@@ -197,17 +215,6 @@ const loadImage = (img: HTMLImageElement) => {
     addHistory(data);
     fillCanvasFromData(data);
   }
-};
-
-const loadBackgroundLayer = async () => {
-  const nextLayerIndex = (currentLayer.value + 1) % faces.value.length;
-  backgroundLayerCtx.value?.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-
-  const img = new Image();
-  img.onload = () => {
-    backgroundLayerCtx.value?.drawImage(img, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-  };
-  img.src = faces.value[nextLayerIndex];
 };
 
 // #region history
@@ -387,11 +394,12 @@ const wipeCanvas = (
 const fillCanvasFromData = (
   data = currentData.value,
   context = pixelsCtx.value,
-  pixelSize = PIXEL_SIZE
+  pixelSize = PIXEL_SIZE,
+  isBackgroundLayer = false
 ) => {
   data.forEach((column, x) => {
     column.forEach((_, y) => {
-      fillPixel(x, y, data[x][y], false, context, pixelSize);
+      fillPixel(x, y, data[x][y], false, context, pixelSize, isBackgroundLayer);
     });
   });
 };
@@ -402,7 +410,8 @@ const fillPixel = (
   value: number,
   writeToHistory = false,
   context = pixelsCtx.value,
-  pixelSize = PIXEL_SIZE
+  pixelSize = PIXEL_SIZE,
+  isBackgroundLayer = false
 ) => {
   if (!context) return;
 
@@ -413,7 +422,14 @@ const fillPixel = (
   } else {
     holdData.value[x][y] = value;
   }
-  context.fillStyle = value ? "black" : "white";
+
+  if (value) {
+    context.fillStyle = "black";
+    context.globalAlpha = isBackgroundLayer ? 0.5 : 1;
+  } else {
+    context.fillStyle = "white";
+    context.globalAlpha = isBackgroundLayer ? 0 : 1;
+  }
   context.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
 };
 
